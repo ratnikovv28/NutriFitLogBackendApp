@@ -54,6 +54,7 @@ public class UserService : IUserService
             throw new UserNotFoundException(userDto.TelegramId);
 
         user.Roles = userDto.Roles;
+        user.UpdatedDate = DateTime.UtcNow;
         await _unitOfWork.UserRepository.UpdateAsync(user);
         await _unitOfWork.SaveAsync();
         

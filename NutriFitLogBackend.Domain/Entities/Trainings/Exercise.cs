@@ -10,4 +10,17 @@ public class Exercise
     public ExerciseType Type { get; set; }
     
     public List<TrainingExercise> Trainings { get; set; } = new();
+
+    public Exercise(
+        string name,
+        string description,
+        string pictureUrl,
+        ExerciseType type)
+    {
+        CreatedDate = DateTime.UtcNow;
+        Name = name;
+        Description = description;
+        PictureUrl = pictureUrl;
+        Type = type;
+    }
 }

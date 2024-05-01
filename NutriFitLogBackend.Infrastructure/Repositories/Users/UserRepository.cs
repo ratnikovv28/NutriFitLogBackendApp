@@ -21,7 +21,7 @@ public class UserRepository : IUserRepository
     
     public async Task<User> GetByTelegramIdAsync(long telegramId)
     {
-        return await _dbContext.Users.FirstOrDefaultAsync(u => u.TelegramId == telegramId);
+        return await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.TelegramId == telegramId);
     }
 
     public async Task<IReadOnlyCollection<User>> GetAllAsync()
@@ -42,10 +42,9 @@ public class UserRepository : IUserRepository
  
     public async Task DeleteAsync(User user)
     {
-        _dbContext.Users.Remove(user);
-        await _dbContext.SaveChangesAsync();
+        await Task.Run(() => _dbContext.Users.Remove(user));
     }
-
+    
     public Task<bool> ExistAsync(long telegramId)
     {
         return _dbContext.Users.AnyAsync(u => u.TelegramId == telegramId);

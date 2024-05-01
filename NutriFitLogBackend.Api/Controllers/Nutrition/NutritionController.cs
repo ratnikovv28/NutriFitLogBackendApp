@@ -12,7 +12,7 @@ public class NutritionController : ControllerBase
 
     public NutritionController(INutritionService nutritionService)
     {
-        _nutritionService = nutritionService;
+        _nutritionService = nutritionService ?? throw new ArgumentNullException(nameof(nutritionService));
     }
 
     [HttpPost("Create")]

@@ -9,7 +9,7 @@ public class User
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }
     
-    public List<UserRole> Roles { get; set; } = new();
+    public List<UserRole> Roles { get; set; }
     public List<User> Trainers { get; set; } = new();
     public List<User> Students { get; set; } = new();
     public List<Action> Actions { get; set; } = new();

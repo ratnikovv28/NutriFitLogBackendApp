@@ -4,9 +4,10 @@ namespace NutriFitLogBackend.Domain.Repositories.Trainings;
 
 public interface ITrainingRepository
 {
-    Task<Training> GetTrainingByIdAsync(long id);
-    Task<IEnumerable<Training>> GetAllTrainingsAsync();
-    Task<Training> AddTrainingAsync(Training training);
-    Task UpdateTrainingAsync(Training training);
-    Task DeleteTrainingAsync(Training training);
+    Task<Training> GetByIdAsync(long id);
+    Task<IReadOnlyCollection<Training>> GetAllByTelegramIdAsync(long telegramId);
+    Task<IReadOnlyCollection<Training>> GetAllAsync();
+    Task<Training> AddAsync(Training training);
+    Task UpdateAsync(Training training);
+    Task DeleteAsync(Training training);
 }

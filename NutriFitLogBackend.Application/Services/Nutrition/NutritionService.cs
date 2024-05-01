@@ -21,36 +21,36 @@ public class NutritionService : INutritionService
     public async Task<MealDto> CreateMeal(CreateMealDto createMealDto)
     {
         var meal = _mapper.Map<Meal>(createMealDto);
-        await _unitOfWork.NutritionRepository.AddMealAsync(meal);
+        await _unitOfWork.NutritionRepository.AddAsync(meal);
         await _unitOfWork.SaveAsync();
         return _mapper.Map<MealDto>(meal);
     }
 
     public async Task<IEnumerable<MealDto>> GetAllMeals()
     {
-        var meals = await _unitOfWork.NutritionRepository.GetAllMealsAsync();
+        var meals = await _unitOfWork.NutritionRepository.GetAllAsync();
         return _mapper.Map<IEnumerable<MealDto>>(meals);
     }
 
     public async Task<MealDto> UpdateMeal(UpdateMealDto updateMealDto)
     {
-        var meal = await _unitOfWork.NutritionRepository.GetMealByIdAsync(updateMealDto.Id);
+        var meal = await _unitOfWork.NutritionRepository.GetByIdAsync(updateMealDto.Id);
         if (meal == null)
             throw new NutritionNotFoundException();
 
         _mapper.Map(updateMealDto, meal);
-        await _unitOfWork.NutritionRepository.UpdateMealAsync(meal);
+        await _unitOfWork.NutritionRepository.UpdateAsync(meal);
         await _unitOfWork.SaveAsync();
         return _mapper.Map<MealDto>(meal);
     }
 
     public async Task DeleteMeal(long id)
     {
-        var meal = await _unitOfWork.NutritionRepository.GetMealByIdAsync(id);
+        var meal = await _unitOfWork.NutritionRepository.GetByIdAsync(id);
         if (meal == null)
             throw new NutritionNotFoundException();
 
-        await _unitOfWork.NutritionRepository.DeleteMealAsync(meal);
+        await _unitOfWork.NutritionRepository.DeleteAsync(meal);
         await _unitOfWork.SaveAsync();
     }
 }

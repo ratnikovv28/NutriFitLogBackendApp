@@ -12,7 +12,7 @@ public class TrainingController : ControllerBase
 
     public TrainingController(ITrainingService trainingService)
     {
-        _trainingService = trainingService;
+        _trainingService = trainingService ?? throw new ArgumentNullException(nameof(trainingService));
     }
 
     [HttpPost("Create")]

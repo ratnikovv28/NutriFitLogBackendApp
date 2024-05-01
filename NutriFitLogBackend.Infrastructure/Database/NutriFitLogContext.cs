@@ -1,4 +1,6 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using NutriFitLogBackend.Domain.Entities.Nutrition;
 using NutriFitLogBackend.Domain.Entities.Trainings;
 using NutriFitLogBackend.Domain.Entities.Users;
@@ -17,8 +19,7 @@ public class NutriFitLogContext : DbContext
             
     }
     
-    public DbSet<User?> Users { get; set; }
-    /*public DbSet<Role> Roles { get; set; }*/
+    public DbSet<User> Users { get; set; }
     public DbSet<Action> Actions { get; set; }
         
     public DbSet<Exercise> Exercises { get; set; }
@@ -34,7 +35,14 @@ public class NutriFitLogContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new UserConfiguration());
-        /*modelBuilder.ApplyConfiguration(new RoleConfiguration());*/
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(e => e.Roles)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v),
+                    v => JsonConvert.DeserializeObject<List<UserRole>>(v))
+                .HasColumnType("json");
+        });
         modelBuilder.ApplyConfiguration(new ActionConfiguration());
         
         modelBuilder.ApplyConfiguration(new ExerciseConfiguration());

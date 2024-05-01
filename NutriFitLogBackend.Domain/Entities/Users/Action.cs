@@ -8,4 +8,14 @@ public class Action
     
     public long AdminId { get; set; }
     public User? Admin { get; set; }
+
+    public Action() {}
+    
+    public Action(string description, User admin)
+    {
+        Description = description;
+        Admin = admin;
+        CreatedDate = DateTime.UtcNow;
+    }
 }
+

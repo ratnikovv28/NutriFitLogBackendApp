@@ -14,36 +14,45 @@ public class TrainingRepository : ITrainingRepository
         _dbContext = dbContext;
     }
 
-    public async Task<Training> GetTrainingByIdAsync(long id)
+    public async Task<Training> GetByIdAsync(long id)
     {
         return await _dbContext.Trainings
             .Include(t => t.Exercises)
-            .ThenInclude(te => te.Exercise)
+            .ThenInclude(e => e.Sets)
             .FirstOrDefaultAsync(t => t.Id == id);
     }
-
-    public async Task<IEnumerable<Training>> GetAllTrainingsAsync()
+    
+    public async Task<IReadOnlyCollection<Training>> GetAllByTelegramIdAsync(long telegramId)
+    {
+        return await _dbContext.Trainings
+            .Where(t => t.User.TelegramId == telegramId)
+            .Include(t => t.Exercises)
+            .ThenInclude(e => e.Sets)
+            .ToListAsync();
+    }
+    
+    public async Task<IReadOnlyCollection<Training>> GetAllAsync()
     {
         return await _dbContext.Trainings
             .Include(t => t.Exercises)
-            .ThenInclude(te => te.Exercise)
+            .ThenInclude(e => e.Sets)
             .ToListAsync();
     }
 
-    public async Task<Training> AddTrainingAsync(Training training)
+    public async Task<Training> AddAsync(Training training)
     {
-        _dbContext.Trainings.Add(training);
+        await _dbContext.Trainings.AddAsync(training);
         await _dbContext.SaveChangesAsync();
         return training;
     }
 
-    public async Task UpdateTrainingAsync(Training training)
+    public async Task UpdateAsync(Training training)
     {
         _dbContext.Trainings.Update(training);
         await _dbContext.SaveChangesAsync();
     }
-
-    public async Task DeleteTrainingAsync(Training training)
+ 
+    public async Task DeleteAsync(Training training)
     {
         _dbContext.Trainings.Remove(training);
         await _dbContext.SaveChangesAsync();
