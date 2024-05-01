@@ -34,7 +34,7 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     PictureUrl = table.Column<string>(type: "character varying(2048)", maxLength: 2048, nullable: false),
-                    CreatedDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Type = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
@@ -61,27 +61,15 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Roles",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Roles", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    TelegramId = table.Column<string>(type: "text", nullable: false),
-                    CreatedDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    UpdatedDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                    TelegramId = table.Column<long>(type: "bigint", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UpdatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    Roles = table.Column<int[]>(type: "integer[]", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -94,7 +82,7 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    CreatedDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     AdminId = table.Column<long>(type: "bigint", nullable: false)
                 },
@@ -115,7 +103,7 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    CreatedDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
@@ -130,36 +118,12 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RoleUser",
-                columns: table => new
-                {
-                    RolesId = table.Column<long>(type: "bigint", nullable: false),
-                    UsersId = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RoleUser", x => new { x.RolesId, x.UsersId });
-                    table.ForeignKey(
-                        name: "FK_RoleUser_Roles_RolesId",
-                        column: x => x.RolesId,
-                        principalTable: "Roles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_RoleUser_Users_UsersId",
-                        column: x => x.UsersId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Trainings",
                 columns: table => new
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    CreatedDate = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UserId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
@@ -174,24 +138,24 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "StudentTrainer",
+                name: "UserUser",
                 columns: table => new
                 {
-                    StudentId = table.Column<long>(type: "bigint", nullable: false),
-                    TrainerId = table.Column<long>(type: "bigint", nullable: false)
+                    StudentsId = table.Column<long>(type: "bigint", nullable: false),
+                    TrainersId = table.Column<long>(type: "bigint", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StudentTrainer", x => new { x.StudentId, x.TrainerId });
+                    table.PrimaryKey("PK_UserUser", x => new { x.StudentsId, x.TrainersId });
                     table.ForeignKey(
-                        name: "FK_StudentTrainer_Users_StudentId",
-                        column: x => x.StudentId,
+                        name: "FK_UserUser_Users_StudentsId",
+                        column: x => x.StudentsId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_StudentTrainer_Users_TrainerId",
-                        column: x => x.TrainerId,
+                        name: "FK_UserUser_Users_TrainersId",
+                        column: x => x.TrainersId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -312,11 +276,6 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RoleUser_UsersId",
-                table: "RoleUser",
-                column: "UsersId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Sets_TrainingExerciseId",
                 table: "Sets",
                 column: "TrainingExerciseId");
@@ -337,9 +296,15 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_StudentTrainer_TrainerId",
-                table: "StudentTrainer",
-                column: "TrainerId");
+                name: "IX_Users_TelegramId",
+                table: "Users",
+                column: "TelegramId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserUser_TrainersId",
+                table: "UserUser",
+                column: "TrainersId");
         }
 
         /// <inheritdoc />
@@ -352,13 +317,10 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                 name: "MealFoods");
 
             migrationBuilder.DropTable(
-                name: "RoleUser");
-
-            migrationBuilder.DropTable(
                 name: "Sets");
 
             migrationBuilder.DropTable(
-                name: "StudentTrainer");
+                name: "UserUser");
 
             migrationBuilder.DropTable(
                 name: "DayParts");
@@ -368,9 +330,6 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "Meals");
-
-            migrationBuilder.DropTable(
-                name: "Roles");
 
             migrationBuilder.DropTable(
                 name: "TrainingExercise");

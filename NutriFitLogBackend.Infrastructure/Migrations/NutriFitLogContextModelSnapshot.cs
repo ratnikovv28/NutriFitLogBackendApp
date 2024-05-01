@@ -83,7 +83,7 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTimeOffset>("CreatedDate")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("UserId")
@@ -155,7 +155,7 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTimeOffset>("CreatedDate")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
@@ -219,7 +219,7 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTimeOffset>("CreatedDate")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("UserId")
@@ -266,7 +266,7 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                     b.Property<long>("AdminId")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTimeOffset>("CreatedDate")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Description")
@@ -280,23 +280,6 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                     b.ToTable("Actions");
                 });
 
-            modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Users.Role", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Roles");
-                });
-
             modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Users.User", b =>
                 {
                     b.Property<long>("Id")
@@ -305,49 +288,40 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<DateTimeOffset>("CreatedDate")
+                    b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("TelegramId")
+                    b.Property<int[]>("Roles")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("integer[]");
 
-                    b.Property<DateTimeOffset?>("UpdatedDate")
+                    b.Property<long>("TelegramId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("TelegramId")
+                        .IsUnique();
+
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("RoleUser", b =>
+            modelBuilder.Entity("UserUser", b =>
                 {
-                    b.Property<long>("RolesId")
+                    b.Property<long>("StudentsId")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("UsersId")
+                    b.Property<long>("TrainersId")
                         .HasColumnType("bigint");
 
-                    b.HasKey("RolesId", "UsersId");
+                    b.HasKey("StudentsId", "TrainersId");
 
-                    b.HasIndex("UsersId");
+                    b.HasIndex("TrainersId");
 
-                    b.ToTable("RoleUser");
-                });
-
-            modelBuilder.Entity("StudentTrainer", b =>
-                {
-                    b.Property<long>("StudentId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TrainerId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("StudentId", "TrainerId");
-
-                    b.HasIndex("TrainerId");
-
-                    b.ToTable("StudentTrainer");
+                    b.ToTable("UserUser");
                 });
 
             modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Nutrition.Meal", b =>
@@ -440,32 +414,17 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                     b.Navigation("Admin");
                 });
 
-            modelBuilder.Entity("RoleUser", b =>
-                {
-                    b.HasOne("NutriFitLogBackend.Domain.Entities.Users.Role", null)
-                        .WithMany()
-                        .HasForeignKey("RolesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("NutriFitLogBackend.Domain.Entities.Users.User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("StudentTrainer", b =>
+            modelBuilder.Entity("UserUser", b =>
                 {
                     b.HasOne("NutriFitLogBackend.Domain.Entities.Users.User", null)
                         .WithMany()
-                        .HasForeignKey("StudentId")
+                        .HasForeignKey("StudentsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("NutriFitLogBackend.Domain.Entities.Users.User", null)
                         .WithMany()
-                        .HasForeignKey("TrainerId")
+                        .HasForeignKey("TrainersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

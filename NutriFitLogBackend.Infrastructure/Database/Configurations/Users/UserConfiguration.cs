@@ -9,10 +9,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     public void Configure(EntityTypeBuilder<User> builder)
     {
         builder.HasKey(u => u.Id);
+        builder.HasIndex(u => u.TelegramId)
+            .IsUnique();
 
-        builder.HasMany(u => u.Roles)
-            .WithMany(r => r.Users);
-        
         builder.HasMany(u => u.Students)
             .WithMany(u => u.Trainers);
         

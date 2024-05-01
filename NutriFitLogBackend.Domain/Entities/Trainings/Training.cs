@@ -5,7 +5,7 @@ namespace NutriFitLogBackend.Domain.Entities.Trainings;
 public class Training
 {
     public long Id { get; set; }
-    public DateTimeOffset CreatedDate { get; set; }
+    public DateTime CreatedDate { get; set; }
     
     public long UserId { get; set; }
     public User? User { get; set; }

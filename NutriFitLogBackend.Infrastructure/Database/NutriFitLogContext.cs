@@ -17,8 +17,8 @@ public class NutriFitLogContext : DbContext
             
     }
     
-    public DbSet<User> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
+    public DbSet<User?> Users { get; set; }
+    /*public DbSet<Role> Roles { get; set; }*/
     public DbSet<Action> Actions { get; set; }
         
     public DbSet<Exercise> Exercises { get; set; }
@@ -34,7 +34,7 @@ public class NutriFitLogContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfiguration(new UserConfiguration());
-        modelBuilder.ApplyConfiguration(new RoleConfiguration());
+        /*modelBuilder.ApplyConfiguration(new RoleConfiguration());*/
         modelBuilder.ApplyConfiguration(new ActionConfiguration());
         
         modelBuilder.ApplyConfiguration(new ExerciseConfiguration());

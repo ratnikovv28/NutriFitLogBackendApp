@@ -1,23 +1,24 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using NutriFitLogBackend.Domain.Repositories;
+using NutriFitLogBackend.Domain;
 using NutriFitLogBackend.Infrastructure.Database;
+using NutriFitLogBackend.Infrastructure.Repositories.Nutrition;
+using NutriFitLogBackend.Infrastructure.Repositories.Trainings;
+using NutriFitLogBackend.Infrastructure.Repositories.Users;
 
 namespace NutriFitLogBackend.Infrastructure.Extensions;
 
 public static class UnitOfWorkExtension
 {
-    public static IServiceCollection SetupUnitOfWork([NotNull] this IServiceCollection serviceCollection)
+    public static IServiceCollection SetupUnitOfWork(this IServiceCollection serviceCollection)
     {
-        //TODO: Find a way to inject the repositories and share the same context without creating a instance.
         serviceCollection.AddScoped<IUnitOfWork, UnitOfWork>(f =>
         {
-            var scopeFactory = f.GetRequiredService<IServiceScopeFactory>();
             var context = f.GetService<NutriFitLogContext>();
             return new UnitOfWork(
-                context/*,
-                new PermissionRepository(context.Permissions),
-                new PermissionTypeRepository(context.PermissionTypes)*/
+                context,
+                new UserRepository(context),
+                new TrainingRepository(context),
+                new NutritionRepository(context)
             );
         });
         return serviceCollection;

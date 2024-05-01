@@ -3,8 +3,13 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using NutriFitLogBackend.Application.Services.Users;
+using NutriFitLogBackend.Controllers.Users.Validators;
+using NutriFitLogBackend.Domain.DTOs.Users;
+using NutriFitLogBackend.Domain.Services;
 using NutriFitLogBackend.Infrastructure.Database;
 using NutriFitLogBackend.Infrastructure.Extensions;
+using NutriFitLogBackend.Infrastructure.Mapper;
 using NutriFitLogBackend.Middlewares;
 
 namespace NutriFitLogBackend;
@@ -22,34 +27,18 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddMvc();
-        services.AddFluentValidationAutoValidation();
-        services.AddValidatorsFromAssemblies(Assembly.GetExecutingAssembly().GetReferencedAssemblies().Select(Assembly.Load));
+        services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
+        services.AddValidatorsFromAssemblyContaining<Startup>();
         
-        //TODO Change to PostgreSQL
         services.AddDbContext<NutriFitLogContext>(options =>
             options.UseNpgsql(Configuration.GetConnectionString("NutriFitLogContext")));
 
         services.SetupUnitOfWork();
 
-        services.AddAutoMapper(Assembly.GetExecutingAssembly().GetReferencedAssemblies().Select(Assembly.Load));
+        services.AddAutoMapper(typeof(MappingProfile));
         
-        //TODO Change repositories
-        // services.AddScoped<IPermissionService, PermissionService>();
-        // services.AddScoped<IPermissionTypeService, PermissionTypeService>();
-
-        var client = Configuration.GetSection("ClientHost").Value;
-
-        services.AddCors(options =>
-        {
-            options.AddPolicy("CorsPolicy",
-                builder => builder
-                    .WithOrigins(Configuration.GetSection("ClientHost").Value)
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials()
-            );
-        });
-
+        services.AddScoped<IUserService, UserService>();
+        
         services.AddSwaggerGen(c =>
         {
             c.SwaggerDoc("v1", new OpenApiInfo { Title = "NutriFitLogBackend.API", Version = "v1" });
@@ -67,8 +56,6 @@ public class Startup
         }
 
         app.UseHttpsRedirection();
-
-        app.UseCors("CorsPolicy");
 
         // Use Exception Middleware
         app.UseMiddleware<ExceptionHandler>();

@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using NutriFitLogBackend.Domain.Entities.Trainings;
 
 namespace NutriFitLogBackend.Infrastructure.Database.Configurations.Trainings;
 
-public class TrainingConfiguration : IEntityTypeConfiguration<Training>
+public class TrainingConfiguration : IEntityTypeConfiguration<Domain.Entities.Trainings.Training>
 {
-    public void Configure(EntityTypeBuilder<Training> builder)
+    public void Configure(EntityTypeBuilder<Domain.Entities.Trainings.Training> builder)
     {
         builder.HasKey(t => t.Id);
 
