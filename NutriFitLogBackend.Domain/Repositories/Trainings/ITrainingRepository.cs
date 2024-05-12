@@ -8,6 +8,6 @@ public interface ITrainingRepository
     Task<IReadOnlyCollection<Training>> GetAllByTelegramIdAsync(long telegramId);
     Task<IReadOnlyCollection<Training>> GetAllAsync();
     Task<Training> AddAsync(Training training);
-    Task UpdateAsync(Training training);
-    Task DeleteAsync(Training training);
+    void UpdateAsync(Training training);
+    void DeleteAsync(Training training);
 }

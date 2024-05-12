@@ -18,6 +18,7 @@ public class SetConfiguration : IEntityTypeConfiguration<Set>
             .IsRequired(false);
 
         builder.Property(s => s.Duration)
+            .HasColumnType("double precision")
             .IsRequired(false);
 
         builder.Property(s => s.Distance)
@@ -26,6 +27,6 @@ public class SetConfiguration : IEntityTypeConfiguration<Set>
 
         builder.HasOne(s => s.TrainingExercise)
             .WithMany(te => te.Sets)
-            .HasForeignKey(s => s.TrainingExerciseId);
+            .HasForeignKey(s => new { s.TrainingId, s.ExerciseId });
     }
 }

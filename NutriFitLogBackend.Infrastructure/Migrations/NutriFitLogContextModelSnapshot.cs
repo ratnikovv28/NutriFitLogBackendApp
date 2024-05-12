@@ -48,27 +48,15 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<double?>("Calories")
-                        .HasColumnType("double precision");
-
-                    b.Property<double?>("Carbohydrates")
-                        .HasColumnType("double precision");
-
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<double?>("Fats")
-                        .HasColumnType("double precision");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<double?>("Protein")
-                        .HasColumnType("double precision");
 
                     b.HasKey("Id");
 
@@ -121,11 +109,6 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
                     b.Property<long>("MealId")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("PortionDescription")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
 
                     b.Property<double?>("Protein")
                         .HasColumnType("double precision");
@@ -192,13 +175,16 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                     b.Property<double?>("Distance")
                         .HasColumnType("double precision");
 
-                    b.Property<TimeSpan?>("Duration")
-                        .HasColumnType("interval");
+                    b.Property<double?>("Duration")
+                        .HasColumnType("double precision");
+
+                    b.Property<long>("ExerciseId")
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("Repetitions")
                         .HasColumnType("bigint");
 
-                    b.Property<long>("TrainingExerciseId")
+                    b.Property<long>("TrainingId")
                         .HasColumnType("bigint");
 
                     b.Property<double?>("Weight")
@@ -206,7 +192,7 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TrainingExerciseId");
+                    b.HasIndex("TrainingId", "ExerciseId");
 
                     b.ToTable("Sets");
                 });
@@ -234,23 +220,24 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Trainings.TrainingExercise", b =>
                 {
+                    b.Property<long>("TrainingId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ExerciseId")
+                        .HasColumnType("bigint");
+
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("ExerciseId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TrainingId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
+                    b.HasKey("TrainingId", "ExerciseId");
 
                     b.HasIndex("ExerciseId");
 
-                    b.HasIndex("TrainingId");
+                    b.HasIndex("Id")
+                        .IsUnique();
 
                     b.ToTable("TrainingExercise");
                 });
@@ -291,9 +278,9 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int[]>("Roles")
+                    b.Property<string>("Roles")
                         .IsRequired()
-                        .HasColumnType("integer[]");
+                        .HasColumnType("json");
 
                     b.Property<long>("TelegramId")
                         .HasColumnType("bigint");
@@ -340,13 +327,13 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                     b.HasOne("NutriFitLogBackend.Domain.Entities.Nutrition.DayPart", "DayPart")
                         .WithMany("Meals")
                         .HasForeignKey("DayPartId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("NutriFitLogBackend.Domain.Entities.Nutrition.Food", "Food")
                         .WithMany("Meals")
                         .HasForeignKey("FoodId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("NutriFitLogBackend.Domain.Entities.Nutrition.Meal", "Meal")
@@ -366,7 +353,7 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                 {
                     b.HasOne("NutriFitLogBackend.Domain.Entities.Trainings.TrainingExercise", "TrainingExercise")
                         .WithMany("Sets")
-                        .HasForeignKey("TrainingExerciseId")
+                        .HasForeignKey("TrainingId", "ExerciseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

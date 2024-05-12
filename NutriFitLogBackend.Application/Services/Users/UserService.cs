@@ -4,6 +4,7 @@ using NutriFitLogBackend.Domain.DTOs.Users;
 using NutriFitLogBackend.Domain.Entities.Users;
 using NutriFitLogBackend.Domain.Exceptions;
 using NutriFitLogBackend.Domain.Services;
+using NutriFitLogBackend.Domain.Services.Users;
 
 namespace NutriFitLogBackend.Application.Services.Users;
 

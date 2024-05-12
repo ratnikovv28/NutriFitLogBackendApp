@@ -14,29 +14,13 @@ public class FoodRepository : IFoodRepository
         _dbContext = dbContext;
     }
         
-    public async Task<Food> GetByIdAsync(long id)
-    {
-        return await _dbContext.Foods.FindAsync(id);
-    }
-    
     public async Task<IReadOnlyCollection<Food>> GetAllAsync()
     {
         return await _dbContext.Foods.ToListAsync();
     }
 
-    public async Task<Food> AddAsync(Food food)
+    public Task<bool> ExistAsync(long foodId)
     {
-        await _dbContext.Foods.AddAsync(food);
-        return food;
-    }
-
-    public async Task UpdateAsync(Food food)
-    {
-        await Task.Run(() => _dbContext.Foods.Update(food));
-    }
- 
-    public async Task DeleteAsync(Food food)
-    {
-        await Task.Run(() => _dbContext.Foods.Remove(food));
+        return _dbContext.Foods.AnyAsync(e => e.Id == foodId);
     }
 }

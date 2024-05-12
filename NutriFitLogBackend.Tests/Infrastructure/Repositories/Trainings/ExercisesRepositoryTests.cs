@@ -122,7 +122,7 @@ public class ExercisesRepositoryTests
         await _dbContext.SaveChangesAsync();
 
         // Act
-        await _sut.DeleteAsync(exercise);
+        _sut.DeleteAsync(exercise);
         await _dbContext.SaveChangesAsync();
         var result = await _sut.GetByIdAsync(exercise.Id);
 

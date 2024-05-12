@@ -1,6 +1,6 @@
 using NutriFitLogBackend.Domain.DTOs.Users;
 
-namespace NutriFitLogBackend.Domain.Services;
+namespace NutriFitLogBackend.Domain.Services.Users;
 
 public interface IUserService
 {

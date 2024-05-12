@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using NutriFitLogBackend.Domain.DTOs.Trainings;
+using NutriFitLogBackend.Domain.DTOs.Trainings.RequestDTOs;
 using NutriFitLogBackend.Domain.Services.Trainings;
 
 namespace NutriFitLogBackend.Controllers.Trainings;
@@ -15,31 +16,45 @@ public class TrainingController : ControllerBase
         _trainingService = trainingService ?? throw new ArgumentNullException(nameof(trainingService));
     }
 
-    [HttpPost("Create")]
-    public async Task<ActionResult<TrainingDto>> CreateTraining([FromBody] CreateTrainingDto dto)
+    [HttpGet("GetAllExercises")]
+    public async Task<ActionResult<IReadOnlyCollection<ExerciseDto>>> GetAllExercises()
     {
-        var createdTraining = await _trainingService.CreateTraining(dto);
-        return Ok(createdTraining);
+        return Ok(await _trainingService.GetAllExercisesAsync());
+    }
+    
+    [HttpPost("GetUserTrainingByDate")]
+    public async Task<ActionResult<TrainingDto>> GetUserTrainingByDate([FromBody] UserExercisesByDateDto dto)
+    {
+        return Ok(await _trainingService.GetUserExercisesByDateAsync(dto.TelegramId, dto.Date, dto.TrainerId));
+    }
+    
+    [HttpPost("AddUserExercise")]
+    public async Task<ActionResult> AddUserExercise([FromBody] CreateExerciseDto dto)
+    {
+        await _trainingService.AddExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.TrainerId);
+        return Ok();
     }
 
-    [HttpGet("GetAll")]
-    public async Task<ActionResult<IEnumerable<TrainingDto>>> GetAllTrainings()
+    [HttpPut("UpdateSetsExercise")]
+    public async Task<ActionResult> UpdateSetsExercise([FromBody] UpdateExerciseDto dto)
     {
-        var trainings = await _trainingService.GetAllTrainings();
-        return Ok(trainings);
+        await _trainingService.UpdateSetsExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.Sets,
+            dto.TrainerId);
+        return Ok();
+    }
+    
+    [HttpDelete("DeleteUserExercise")]
+    public async Task<ActionResult> DeleteUserExercise([FromBody] DeleteUserExerciseDto dto)
+    {
+        await _trainingService.DeleteExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.TrainerId);
+        return Ok();
     }
 
-    [HttpPut("Update")]
-    public async Task<ActionResult<TrainingDto>> UpdateTraining([FromBody] UpdateTrainingDto dto)
+    [HttpDelete("DeleteSetsExercise")]
+    public async Task<ActionResult> DeleteSetsExercise([FromBody] DeleteSetsExerciseDto dto)
     {
-        var updatedTraining = await _trainingService.UpdateTraining(dto);
-        return Ok(updatedTraining);
-    }
-
-    [HttpDelete("Delete/{id}")]
-    public async Task<IActionResult> DeleteTraining(long id)
-    {
-        await _trainingService.DeleteTraining(id);
+        await _trainingService.DeleteSetsExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.SetId,
+            dto.TrainerId);
         return Ok();
     }
 }

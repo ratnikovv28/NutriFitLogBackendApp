@@ -8,18 +8,18 @@ public class TrainingExerciseConfiguration : IEntityTypeConfiguration<TrainingEx
 {
     public void Configure(EntityTypeBuilder<TrainingExercise> builder)
     {
-        builder.HasKey(te => te.Id);
-
+        builder.HasKey(te => new { te.TrainingId, te.ExerciseId });
+        builder.HasIndex(te => te.Id).IsUnique();
         builder.HasOne(te => te.Training)
-               .WithMany(t => t.Exercises)
-               .HasForeignKey(te => te.TrainingId);
+            .WithMany(t => t.Exercises)
+            .HasForeignKey(te => te.TrainingId);
 
         builder.HasOne(te => te.Exercise)
-               .WithMany(e => e.Trainings)
-               .HasForeignKey(te => te.ExerciseId);
+            .WithMany(e => e.Trainings)
+            .HasForeignKey(te => te.ExerciseId);
 
         builder.HasMany(te => te.Sets)
-               .WithOne(s => s.TrainingExercise)
-               .HasForeignKey(s => s.TrainingExerciseId);
+            .WithOne(s => s.TrainingExercise)
+            .HasForeignKey(s => new { s.TrainingId, s.ExerciseId });
     }
 }

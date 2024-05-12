@@ -3,7 +3,6 @@ namespace NutriFitLogBackend.Domain.Entities.Nutrition;
 public class MealFood
 {
     public long Id { get; set; }
-    public string PortionDescription { get; set; } = String.Empty;
     public double? Calories { get; set; }
     public double? Protein { get; set; }
     public double? Fats { get; set; }

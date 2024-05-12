@@ -8,8 +8,8 @@ public class TrainingNotFoundException : BaseException
     {
     }
 
-    public TrainingNotFoundException(long telegramId) 
-        : base(HttpStatusCode.NotFound, $"The user with the ID = {telegramId} was not found.")
+    public TrainingNotFoundException(long trainingId) 
+        : base(HttpStatusCode.NotFound, $"The training with the ID = {trainingId} was not found.")
     {
     }
 }

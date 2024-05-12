@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using NutriFitLogBackend.Domain.Entities.Trainings;
+using NutriFitLogBackend.Domain.Repositories.Trainings;
 using NutriFitLogBackend.Infrastructure.Database;
 
 namespace NutriFitLogBackend.Infrastructure.Repositories.Trainings;
 
-public class SetRepository
+public class SetRepository : ISetRepository
 {
     private readonly NutriFitLogContext _dbContext;
 
@@ -29,13 +30,18 @@ public class SetRepository
         return set;
     }
 
-    public async Task UpdateAsync(Set set)
+    public void Update(Set set)
     {
-        await Task.Run(() => _dbContext.Sets.Update(set));
+        _dbContext.Sets.Update(set);
     }
  
-    public async Task DeleteAsync(Set set)
+    public void Delete(Set set)
     {
-        await Task.Run(() => _dbContext.Sets.Remove(set));
+        _dbContext.Sets.Remove(set);
+    }
+    
+    public void DeleteRangeAsync(IReadOnlyCollection<Set> sets)
+    {
+        _dbContext.Sets.RemoveRange(sets);
     }
 }

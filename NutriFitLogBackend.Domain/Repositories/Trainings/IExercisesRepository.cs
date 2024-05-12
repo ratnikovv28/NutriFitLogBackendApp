@@ -8,5 +8,6 @@ public interface IExercisesRepository
     Task<IReadOnlyCollection<Exercise>> GetAllAsync();
     Task<Exercise> AddAsync(Exercise exercise);
     Task UpdateAsync(Exercise exercise);
-    Task DeleteAsync(Exercise exercise);
+    void DeleteAsync(Exercise exercise);
+    Task<bool> ExistAsync(long exerciseId);
 }

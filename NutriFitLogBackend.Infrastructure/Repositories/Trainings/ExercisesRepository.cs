@@ -35,8 +35,13 @@ public class ExercisesRepository : IExercisesRepository
         await Task.Run(() => _dbContext.Exercises.Update(exercise));
     }
  
-    public async Task DeleteAsync(Exercise exercise)
+    public void DeleteAsync(Exercise exercise)
     {
-        await Task.Run(() => _dbContext.Exercises.Remove(exercise));
+        _dbContext.Exercises.Remove(exercise);
+    }
+
+    public Task<bool> ExistAsync(long exerciseId)
+    {
+        return _dbContext.Exercises.AnyAsync(e => e.Id == exerciseId);
     }
 }

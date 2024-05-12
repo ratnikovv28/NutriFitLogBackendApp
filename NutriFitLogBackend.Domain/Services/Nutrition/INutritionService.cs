@@ -5,8 +5,10 @@ namespace NutriFitLogBackend.Domain.Services.Nutrition;
 
 public interface INutritionService
 {
-    Task<MealDto> CreateMeal(CreateMealDto createMealDto);
-    Task<IEnumerable<MealDto>> GetAllMeals();
-    Task<MealDto> UpdateMeal(UpdateMealDto updateMealDto);
-    Task DeleteMeal(long id);
+    Task<IReadOnlyCollection<DayPartDto>> GetAllDayPartsAsync();
+    Task<IReadOnlyCollection<FoodDto>> GetAllFoodsAsync();
+    Task<IReadOnlyCollection<MealFoodDto>> GetUserFoodsByDateAsync(long telegramId, DateOnly date, long trainerId = 0);
+    Task AddFoodAsync(RequestFoodDto dto);
+    Task DeleteFoodAsync(long telegramId, long mealId, long foodId, long dayPartId, long trainerId = 0);
+    Task UpdateFoodMealAsync(RequestFoodDto dto);
 }

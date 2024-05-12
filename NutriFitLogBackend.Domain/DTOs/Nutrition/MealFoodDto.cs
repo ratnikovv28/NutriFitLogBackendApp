@@ -9,4 +9,5 @@ public class MealFoodDto
     public UnitOfMeasure Unit { get; set; }
     public double Quantity { get; set; }
     public FoodDto Food { get; set; }
+    public DayPartDto DayPart { get; set; }
 }

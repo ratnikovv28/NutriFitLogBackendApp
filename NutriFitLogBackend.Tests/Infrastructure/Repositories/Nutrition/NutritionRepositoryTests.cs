@@ -45,7 +45,7 @@ public class NutritionRepositoryTests
     
     [Theory]
     [MemberData(nameof(MealData))]
-    public async Task GetAllByUserId_WhenMealsExist_ReturnsMeals(Meal meal)
+    public async Task GetAllByTelegramId_WhenMealsExist_ReturnsMeals(Meal meal)
     {
         // Arrange
         _dbContext.Meals.Add(meal);
@@ -61,12 +61,12 @@ public class NutritionRepositoryTests
     
     [Theory]
     [MemberData(nameof(MealData))]
-    public async Task GetAllByUserId_WhenNoMeals_ReturnsEmpty(Meal meal)
+    public async Task GetAllByTelegramId_WhenNoMeals_ReturnsEmpty(Meal meal)
     {
         // Arrange
 
         // Act
-        var result = await _sut.GetAllByTelegramIdAsync(meal.User.TelegramId + 1); 
+        var result = await _sut.GetAllByTelegramIdAsync(meal.User.TelegramId); 
 
         // Assert
         result.Should().BeEmpty();
@@ -109,6 +109,34 @@ public class NutritionRepositoryTests
         result.Should().BeNull();
     }
     
+    [Theory]
+    [MemberData(nameof(MealsData))]
+    public async Task GetAllAsync_WhenMealsExist_ReturnsAllMeals(List<Meal> expectedMeals)
+    {
+        // Arrange
+        _dbContext.Meals.AddRange(expectedMeals);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetAllAsync();
+
+        // Assert
+        result.Should().HaveCount(expectedMeals.Count);
+        result.Should().BeEquivalentTo(expectedMeals, options => options
+            .ExcludingNestedObjects() 
+            .Excluding(m => m.User));
+    }
+    
+    [Fact]
+    public async Task GetAllAsync_WhenNoMealsExist_ReturnsEmptyCollection()
+    {
+        // Act
+        var result = await _sut.GetAllAsync();
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+    
     public static IEnumerable<object[]> MealData()
     {
         var fixture = new Fixture();
@@ -129,5 +157,32 @@ public class NutritionRepositoryTests
         };
 
         yield return new object[] { meal };
+    }
+    
+    public static IEnumerable<object[]> MealsData()
+    {
+        var fixture = new Fixture();
+        var meals = new List<Meal>();
+
+        for (int i = 0; i < 3; i++)
+        {
+            var meal = new Meal
+            {
+                CreatedDate = DateTime.UtcNow.AddDays(-i),
+                UserId = fixture.Create<long>(),
+                Foods = new List<MealFood>
+                {
+                    new MealFood
+                    {
+                        Food = new Food { Name = "Food " + i },
+                        Quantity = 100 + 10 * i,
+                        Unit = UnitOfMeasure.Grams
+                    }
+                }
+            };
+            meals.Add(meal);
+        }
+
+        yield return new object[] { meals };
     }
 }

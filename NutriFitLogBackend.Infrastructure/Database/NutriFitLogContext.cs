@@ -43,6 +43,9 @@ public class NutriFitLogContext : DbContext
                     v => JsonConvert.DeserializeObject<List<UserRole>>(v))
                 .HasColumnType("json");
         });
+        modelBuilder.Entity<TrainingExercise>()
+            .Property(te => te.Id)
+            .ValueGeneratedOnAdd();
         modelBuilder.ApplyConfiguration(new ActionConfiguration());
         
         modelBuilder.ApplyConfiguration(new ExerciseConfiguration());

@@ -21,7 +21,23 @@ public class UserRepository : IUserRepository
     
     public async Task<User> GetByTelegramIdAsync(long telegramId)
     {
-        return await _dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.TelegramId == telegramId);
+        return await _dbContext.Users
+            .AsNoTracking()
+            .Include(u => u.Trainings)
+                .ThenInclude(t => t.Exercises)
+                    .ThenInclude(t => t.Exercise)
+            .Include(u => u.Trainings)
+                .ThenInclude(t => t.Exercises)
+                    .ThenInclude(te => te.Sets)
+            .Include(u => u.Trainers)
+            .Include(u => u.Students)
+            .Include(u => u.Meals)
+                .ThenInclude(m => m.Foods)
+                    .ThenInclude(mf => mf.Food)
+            .Include(u => u.Meals)
+                .ThenInclude(f => f.Foods)
+                    .ThenInclude(mf => mf.DayPart)
+            .FirstOrDefaultAsync(u => u.TelegramId == telegramId);
     }
 
     public async Task<IReadOnlyCollection<User>> GetAllAsync()

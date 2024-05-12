@@ -42,19 +42,16 @@ public class TrainingRepository : ITrainingRepository
     public async Task<Training> AddAsync(Training training)
     {
         await _dbContext.Trainings.AddAsync(training);
-        await _dbContext.SaveChangesAsync();
         return training;
     }
 
-    public async Task UpdateAsync(Training training)
+    public void UpdateAsync(Training training)
     {
         _dbContext.Trainings.Update(training);
-        await _dbContext.SaveChangesAsync();
     }
  
-    public async Task DeleteAsync(Training training)
+    public void DeleteAsync(Training training)
     {
         _dbContext.Trainings.Remove(training);
-        await _dbContext.SaveChangesAsync();
     }
 }

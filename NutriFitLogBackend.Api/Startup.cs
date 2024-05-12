@@ -1,12 +1,13 @@
-using System.Reflection;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using NutriFitLogBackend.Application.Services.Nutrition;
+using NutriFitLogBackend.Application.Services.Trainings;
 using NutriFitLogBackend.Application.Services.Users;
-using NutriFitLogBackend.Controllers.Users.Validators;
-using NutriFitLogBackend.Domain.DTOs.Users;
-using NutriFitLogBackend.Domain.Services;
+using NutriFitLogBackend.Domain.Services.Nutrition;
+using NutriFitLogBackend.Domain.Services.Trainings;
+using NutriFitLogBackend.Domain.Services.Users;
 using NutriFitLogBackend.Infrastructure.Database;
 using NutriFitLogBackend.Infrastructure.Extensions;
 using NutriFitLogBackend.Infrastructure.Mapper;
@@ -38,6 +39,8 @@ public class Startup
         services.AddAutoMapper(typeof(MappingProfile));
         
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ITrainingService, TrainingService>();
+        services.AddScoped<INutritionService, NutritionService>();
         
         services.AddSwaggerGen(c =>
         {

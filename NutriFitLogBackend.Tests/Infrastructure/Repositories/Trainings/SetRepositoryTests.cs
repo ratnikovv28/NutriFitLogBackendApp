@@ -73,8 +73,8 @@ public class SetRepositoryTests
         // Arrange
         var sets = new List<Set>
         {
-            new Set { Repetitions = 10, Weight = 100.0, Duration = TimeSpan.FromMinutes(5), Distance = 500 },
-            new Set { Repetitions = 8, Weight = 90.0, Duration = TimeSpan.FromMinutes(4), Distance = 400 }
+            new Set { Repetitions = 10, Weight = 100.0, Duration = 5, Distance = 500 },
+            new Set { Repetitions = 8, Weight = 90.0, Duration = 4, Distance = 400 }
         };
 
         _dbContext.Sets.AddRange(sets);
@@ -119,7 +119,7 @@ public class SetRepositoryTests
         await _dbContext.SaveChangesAsync();
 
         // Act
-        await _sut.DeleteAsync(set);
+        _sut.Delete(set);
         await _dbContext.SaveChangesAsync();
         var result = await _sut.GetByIdAsync(set.Id);
 
@@ -132,7 +132,7 @@ public class SetRepositoryTests
         var fixture = new Fixture();
         var repetitions = fixture.Create<long?>();
         var weight = fixture.Create<double?>();
-        var duration = fixture.Create<TimeSpan?>();
+        var duration = fixture.Create<double?>();
         var distance = fixture.Create<double?>();
 
         var set = new Set

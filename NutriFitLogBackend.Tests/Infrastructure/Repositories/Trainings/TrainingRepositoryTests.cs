@@ -127,7 +127,7 @@ public class TrainingRepositoryTests
         training.Exercises.First().Sets.First().Repetitions = 20;
 
         // Act
-        await _sut.UpdateAsync(training);
+        _sut.UpdateAsync(training);
         await _dbContext.SaveChangesAsync();
         var updatedTraining = await _sut.GetByIdAsync(training.Id);
 
@@ -144,7 +144,7 @@ public class TrainingRepositoryTests
         await _dbContext.SaveChangesAsync();
 
         // Act
-        await _sut.DeleteAsync(training);
+        _sut.DeleteAsync(training);
         await _dbContext.SaveChangesAsync();
         var result = await _sut.GetByIdAsync(training.Id);
 
@@ -168,7 +168,7 @@ public class TrainingRepositoryTests
             Exercise = exercise,
             Sets = new List<Set>
             {
-                new Set { Repetitions = 10, Weight = 100, Duration = TimeSpan.FromMinutes(5), Distance = 100 }
+                new Set { Repetitions = 10, Weight = 100, Duration = 5, Distance = 100 }
             }
         };
 
@@ -183,6 +183,34 @@ public class TrainingRepositoryTests
         {
             training
         };
+    }
+    
+    [Theory]
+    [MemberData(nameof(TrainingsData))]
+    public async Task GetAllAsync_WhenTrainingsExist_ReturnsAllTrainings(List<Training> expectedTrainings)
+    {
+        // Arrange
+        _dbContext.Trainings.AddRange(expectedTrainings);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetAllAsync();
+
+        // Assert
+        result.Should().HaveCount(expectedTrainings.Count);
+        result.Should().BeEquivalentTo(expectedTrainings, options => options
+            .Excluding(t => t.User) 
+            .ExcludingNestedObjects());
+    }
+    
+    [Fact]
+    public async Task GetAllAsync_WhenNoTrainingsExist_ReturnsEmptyCollection()
+    {
+        // Act
+        var result = await _sut.GetAllAsync();
+
+        // Assert
+        result.Should().BeEmpty();
     }
     
     public static IEnumerable<object[]> TrainingDataForUser()
@@ -201,7 +229,7 @@ public class TrainingRepositoryTests
             Exercise = exercise,
             Sets = new List<Set>
             {
-                new Set { Repetitions = 10, Weight = 100, Duration = TimeSpan.FromMinutes(5), Distance = 100 }
+                new Set { Repetitions = 10, Weight = 100, Duration = 5, Distance = 100 }
             }
         };
 
@@ -217,5 +245,34 @@ public class TrainingRepositoryTests
             user,
             training
         };
+    }
+    
+    public static IEnumerable<object[]> TrainingsData()
+    {
+        var fixture = new Fixture();
+        var trainings = new List<Training>();
+
+        for (int i = 0; i < 3; i++)
+        {
+            var training = new Training
+            {
+                CreatedDate = DateTime.UtcNow.AddDays(-i),
+                UserId = fixture.Create<long>(),
+                Exercises = new List<TrainingExercise>
+                {
+                    new TrainingExercise
+                    {
+                        Exercise = new Exercise ("Exercise " + i, "Test desc", "Test pic", ExerciseType.Endurance ),
+                        Sets = new List<Set>
+                        {
+                            new Set { Repetitions = 10, Weight = 50.5, Duration = 5, Distance = 500 }
+                        }
+                    }
+                }
+            };
+            trainings.Add(training);
+        }
+
+        yield return new object[] { trainings };
     }
 }

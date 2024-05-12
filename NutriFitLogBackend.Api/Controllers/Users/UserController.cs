@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NutriFitLogBackend.Domain.DTOs.Users;
 using NutriFitLogBackend.Domain.Services;
+using NutriFitLogBackend.Domain.Services.Users;
 
 namespace NutriFitLogBackend.Controllers.Users;
 
