@@ -99,7 +99,6 @@ public class TrainingServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Count.Should().Be(0);
     }
     
     [Theory]
@@ -115,7 +114,7 @@ public class TrainingServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Count.Should().Be(trainings.First(t => t.CreatedDate.ToDateOnly() == date).Exercises.Count);
+        result.CreatedDate.ToDateOnly().Should().Be(date);
     }
     
     [Theory]
@@ -298,7 +297,7 @@ public class TrainingServiceTests
     
     private void SetupTrainingAddRepository(Training training, Training createdTraining)
     {
-        _uowMock.Setup(x => x.TrainingRepository.AddAsync(It.Is<Training>(t => t == training)))
+        _uowMock.Setup(x => x.TrainingRepository.AddAsync(It.IsAny<Training>()))
             .ReturnsAsync(createdTraining);
     }
     

@@ -4,5 +4,5 @@ public class UserExercisesByDateDto
 {
     public long TelegramId { get; set; }
     public DateOnly Date { get; set; }
-    public long TrainerId { get; set; } = -1;
+    public long TrainerId { get; set; } = 0;
 }

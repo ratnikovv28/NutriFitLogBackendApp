@@ -19,13 +19,13 @@ public static class UnitOfWorkExtension
                 new UserRepository(context),
                 new TrainingRepository(context),
                 new NutritionRepository(context),
-                new ActionRepository(context),
                 new ExercisesRepository(context),
                 new SetRepository(context),
                 new FoodRepository(context),
                 new DayPartRepository(context),
                 new TrainingExerciseRepository(context),
-                new MealFoodRepository(context)
+                new MealFoodRepository(context),
+                new StudentTrainerRepository(context)
             );
         });
         return serviceCollection;

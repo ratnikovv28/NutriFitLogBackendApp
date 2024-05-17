@@ -11,7 +11,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly NutriFitLogContext _nutriFitLogContext;
 
     public IUserRepository UserRepository { get; set; }
-    public IActionRepository ActionRepository { get; set; }
+    public IStudentTrainerRepository StudentTrainerRepository { get; set; }
     
     public ITrainingRepository TrainingRepository { get; set; }
     public ITrainingExerciseRepository TrainingExerciseRepository { get; set; }
@@ -28,25 +28,25 @@ public class UnitOfWork : IUnitOfWork
         IUserRepository userRepository,
         ITrainingRepository trainingRepository,
         INutritionRepository nutritionRepository, 
-        IActionRepository actionRepository,
         IExercisesRepository exercisesRepository,
         ISetRepository setRepository, 
         IFoodRepository foodRepository, 
         IDayPartRepository dayPartRepository, 
         ITrainingExerciseRepository trainingExerciseRepository, 
-        IMealFoodRepository mealFoodRepository)
+        IMealFoodRepository mealFoodRepository, 
+        IStudentTrainerRepository studentTrainerRepository)
     {
         _nutriFitLogContext = nutriFitLogContext;
         UserRepository = userRepository;
         TrainingRepository = trainingRepository;
         NutritionRepository = nutritionRepository;
-        ActionRepository = actionRepository;
         ExercisesRepository = exercisesRepository;
         SetRepository = setRepository;
         FoodRepository = foodRepository;
         DayPartRepository = dayPartRepository;
         TrainingExerciseRepository = trainingExerciseRepository;
         MealFoodRepository = mealFoodRepository;
+        StudentTrainerRepository = studentTrainerRepository;
     }
     
     public async Task<int> SaveAsync() => await _nutriFitLogContext.SaveChangesAsync();

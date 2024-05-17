@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using AutoMapper;
 using NutriFitLogBackend.Domain;
 using NutriFitLogBackend.Domain.DTOs.Trainings;
@@ -14,6 +15,7 @@ public class TrainingService : ITrainingService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
 
+    [ExcludeFromCodeCoverage]
     public TrainingService(IUnitOfWork unitOfWork, IMapper mapper)
     {
         _unitOfWork = unitOfWork;
@@ -28,6 +30,29 @@ public class TrainingService : ITrainingService
         return _mapper.Map<IReadOnlyCollection<ExerciseDto>>(exercises);
     }
     
+    // Получение подходов упражнения
+    public async Task<IReadOnlyCollection<SetDto>> GetExerciseSetsAsync(long trainingId, long exerciseId)
+    {
+        var exercises = await _unitOfWork.SetRepository.GetByTrainingAndExerciseIdAsync(trainingId, exerciseId);
+        
+        return _mapper.Map<IReadOnlyCollection<SetDto>>(exercises);
+    }
+    
+    public async Task<IReadOnlyCollection<ExerciseDto>> GetAvailableUserExercisesAsync(long telegramId, long trainingId, long trainerId = 0)
+    {
+        // Получение пользователя
+        var user = await GetUser(telegramId);
+        
+        // Если пользователь не работает с тренером, то ошибка
+        await UserWorkWithTrainerGuard(user, trainerId);
+        
+        var userTraining = GetTrainingById(user, trainingId);
+        var exercises = await _unitOfWork.ExercisesRepository.GetAllAsync();
+        var notExistExercises = exercises.Where(e => !userTraining.Exercises.Exists(ue => ue.ExerciseId == e.Id));
+        
+        return _mapper.Map<IReadOnlyCollection<ExerciseDto>>(notExistExercises);
+    }
+    
     // Получение информации о тренировке 
     public async Task<TrainingDto> GetUserExercisesByDateAsync(long telegramId, DateOnly date, long trainerId = 0)
     {
@@ -35,7 +60,7 @@ public class TrainingService : ITrainingService
         var user = await GetUser(telegramId);
         
         // Если пользователь не работает с тренером, то ошибка
-        UserWorkWithTrainerGuard(user, trainerId);
+        await UserWorkWithTrainerGuard(user, trainerId);
 
         // Тренировка по дню
         var trainingByDate = user.Trainings.FirstOrDefault(t => t.CreatedDate.ToDateOnly() == date);
@@ -66,7 +91,7 @@ public class TrainingService : ITrainingService
 
         // Проверки на валидность входных данных
         GetTrainingById(user, trainingId);
-        UserWorkWithTrainerGuard(user, trainerId);
+        await UserWorkWithTrainerGuard(user, trainerId);
         await ExerciseExistsGuard(exerciseId);
         ExerciseExistsInTrainingGuard(user, trainingId, exerciseId);
         
@@ -87,9 +112,9 @@ public class TrainingService : ITrainingService
         // Получение пользователя
         var user = await GetUser(telegramId);
 
-        UserWorkWithTrainerGuard(user, trainerId);
+        await UserWorkWithTrainerGuard(user, trainerId);
 
-        var userTrainingExercises = GetUserExercisesByTraining(user, trainingId, exerciseId);
+        var userTrainingExercises = await _unitOfWork.TrainingExerciseRepository.GetByTrainingAndExercideId(trainingId, exerciseId);
 
         _unitOfWork.TrainingExerciseRepository.Delete(userTrainingExercises);
         await _unitOfWork.SaveAsync();
@@ -101,7 +126,7 @@ public class TrainingService : ITrainingService
         // Получение пользователя
         var user = await GetUser(telegramId);
 
-        UserWorkWithTrainerGuard(user, trainerId);
+        await UserWorkWithTrainerGuard(user, trainerId);
         GetUserExercisesByTraining(user, trainingId, exerciseId);
 
         foreach (var setDto in setsDto)
@@ -139,19 +164,19 @@ public class TrainingService : ITrainingService
     }
     
     // Удаления повторов у упражнения
-    public async Task DeleteSetsExerciseAsync(long telegramId, long trainingId, long exerciseId, long setId, long trainerId = 0)
+    public async Task DeleteSetsExerciseAsync(long telegramId, long trainingId, long exerciseId, IReadOnlyCollection<long> setsId, long trainerId = 0)
     {
         // Получение пользователя
         var user = await GetUser(telegramId);
 
-        UserWorkWithTrainerGuard(user, trainerId);
+        await UserWorkWithTrainerGuard(user, trainerId);
 
-        // Получение упражнений пользователя по тренировке
-        var userTrainingExercises = GetUserExercisesByTraining(user, trainingId, exerciseId);
         // Нахождение упражнение с нужным сетом
-        var exerciseSet = GetSetFromExercise(userTrainingExercises, user, setId);
-        
-        _unitOfWork.SetRepository.Delete(exerciseSet);
+        foreach (var setId in setsId)
+        {
+            var exerciseSet = await _unitOfWork.SetRepository.GetByTrainingAndExerciseIdAndIdAsync(trainingId, exerciseId, setId);
+            _unitOfWork.SetRepository.Delete(exerciseSet);
+        }
         await _unitOfWork.SaveAsync();
     }
 
@@ -173,10 +198,21 @@ public class TrainingService : ITrainingService
         return user;
     }
 
-    private void UserWorkWithTrainerGuard(User user, long trainerId)
+    private async Task UserWorkWithTrainerGuard(User user, long trainerId)
     {
-        if(trainerId != 0 && user.Trainers.All(u => u.TelegramId != trainerId))
-            throw new NoAccessUserDataException(user.TelegramId, trainerId);
+        if(trainerId == 0) return;
+        
+        var student = await _unitOfWork.UserRepository.GetByTelegramIdAsync(user.TelegramId);
+        if (student is null)
+            throw new UserNotFoundException(user.TelegramId);
+        var trainer = await _unitOfWork.UserRepository.GetByTelegramIdAsync(trainerId);
+        if (trainer is null)
+            throw new UserNotFoundException(trainerId);
+
+        var studentTrainer = await _unitOfWork.StudentTrainerRepository.GetRelationShip(student.Id, trainer.Id);
+        if (studentTrainer is null)
+            throw new StudentTrainerWorkException(
+                $"Student with Id = '{user.TelegramId}' doesnt work with Trainer with Id = '{trainerId}'");
     }
 
     private Training GetTrainingById(User user, long trainingId)

@@ -11,16 +11,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasKey(u => u.Id);
         builder.HasIndex(u => u.TelegramId)
             .IsUnique();
-        
-        builder.HasMany(u => u.Students)
-            .WithMany(u => u.Trainers);
-        
-        builder.HasMany(u => u.Trainers)
-            .WithMany(u => u.Students);
 
-        builder.HasMany(u => u.Actions)
-            .WithOne(a => a.Admin)
-            .HasForeignKey(a => a.AdminId);
+        builder.HasMany(u => u.Students)
+            .WithOne(st => st.Trainer)
+            .HasForeignKey(st => st.TrainerId);
+
+        builder.HasMany(u => u.Trainers)
+            .WithOne(st => st.Student)
+            .HasForeignKey(st => st.StudentId);
 
         builder.HasMany(u => u.Trainings)
             .WithOne(t => t.User)

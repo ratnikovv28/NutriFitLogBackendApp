@@ -1,31 +1,19 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2c0cd606_002D9afc_002D42af_002Db34d_002Dcc371316c9f0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetUserTrainingByDate_ReturnsAllExercises" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::NutriFitLogBackend.Tests.Infrastructure.Repositories.Nutrition.FoodRepositoryTests&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
+	<s:String x:Key="/Default/Environment/AssemblyExplorer/XmlDocument/@EntryValue">&lt;AssemblyExplorer&gt;&#xD;
+  &lt;Assembly Path="C:\Users\megas\.nuget\packages\fluentvalidation\11.9.0\lib\net7.0\FluentValidation.dll" /&gt;&#xD;
+&lt;/AssemblyExplorer&gt;</s:String>
+	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\megas\AppData\Local\JetBrains\Rider2023.3\resharper-host\temp\Rider\vAny\CoverageData\_NutriFitLogBackend.-821646621\Snapshot\snapshot.utdcvr</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a22a4dc7_002D5855_002D4669_002D8ebc_002D8eec81733977/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from Solution #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=3bc282b8_002Db30e_002D4f0d_002D9c26_002Da1019a1e37a7/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from Nutrition" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Or&gt;&#xD;
-    &lt;ProjectFolder&gt;12FB8F78-983C-46C5-A2F6-D365C0002B30/d:Infrastructure/d:Repositories/d:Nutrition&lt;/ProjectFolder&gt;&#xD;
-    &lt;TestAncestor&gt;&#xD;
-      &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::NutriFitLogBackend.Tests.Infrastructure.Repositories.Trainings.TrainingRepositoryTests&lt;/TestId&gt;&#xD;
-      &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::NutriFitLogBackend.Tests.Application.Services.TrainingServiceTests.GetAllExercisesAsync_ReturnsAllExercises&lt;/TestId&gt;&#xD;
-      &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::NutriFitLogBackend.Tests.Application.Services.TrainingServiceTests.GetAllExercises_ReturnsAllExercises&lt;/TestId&gt;&#xD;
-      &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::NutriFitLogBackend.Tests.Application.Services.TrainingServiceTests.GetUserTrainingByDate_ReturnsAllExercises&lt;/TestId&gt;&#xD;
-    &lt;/TestAncestor&gt;&#xD;
-  &lt;/Or&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a8940367_002D2025_002D490b_002Dae9b_002Db25d86189cbf/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from Solution" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=775679a6_002Dacdd_002D46b0_002D9855_002Dccb2f9313609/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="TrainingServiceTests" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::NutriFitLogBackend.Tests.Application.Services.TrainingServiceTests&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=b9b687f6_002Dd0e5_002D4f17_002Dac09_002D4a8cc760a5c0/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetAllExercises_ReturnsAllExercises" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;TestAncestor&gt;&#xD;
-    &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::NutriFitLogBackend.Tests.Application.Services.TrainingServiceTests&lt;/TestId&gt;&#xD;
-  &lt;/TestAncestor&gt;&#xD;
-&lt;/SessionState&gt;</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e3523892_002D6e5d_002D40d2_002Db907_002De20c5dd7a852/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="GetUserTrainingByDate_ReturnsAllExercises #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	
+	
+	
+	
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e3523892_002D6e5d_002D40d2_002Db907_002De20c5dd7a852/@EntryIndexedValue">&lt;SessionState ContinuousTestingIsOn="True" ContinuousTestingMode="3" Name="GetUserTrainingByDate_ReturnsAllExercises #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::NutriFitLogBackend.Tests.Infrastructure.Repositories.Nutrition.FoodRepositoryTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::NutriFitLogBackend.Tests.Application.Services.TrainingServiceTests.GetAllExercises_ReturnsAllExercises&lt;/TestId&gt;&#xD;

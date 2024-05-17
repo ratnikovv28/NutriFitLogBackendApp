@@ -1,5 +1,3 @@
-using NutriFitLogBackend.Domain.Entities.Users;
-
 namespace NutriFitLogBackend.Domain.DTOs.Trainings;
 
 public class TrainingDto

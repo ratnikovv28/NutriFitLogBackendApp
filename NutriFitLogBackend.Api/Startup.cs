@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +16,7 @@ using NutriFitLogBackend.Middlewares;
 
 namespace NutriFitLogBackend;
 
+[ExcludeFromCodeCoverage]
 public class Startup
 {   
     public IConfiguration Configuration { get; }
@@ -24,7 +26,6 @@ public class Startup
         Configuration = configuration;
     }
     
-    // This method gets called by the runtime. Use this method to add services to the container.
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddMvc();
@@ -41,6 +42,17 @@ public class Startup
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ITrainingService, TrainingService>();
         services.AddScoped<INutritionService, NutritionService>();
+
+        services.AddCors(options =>
+        {
+            options.AddPolicy(name: "NutriFitLogPolicy",
+                policy =>
+                {
+                    policy.WithOrigins("http://localhost:3000")
+                        .AllowAnyMethod() 
+                        .AllowAnyHeader();
+                });
+        });
         
         services.AddSwaggerGen(c =>
         {
@@ -57,7 +69,7 @@ public class Startup
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NutriFitLogBackend.API v1"));
         }
-
+        
         app.UseHttpsRedirection();
 
         // Use Exception Middleware
@@ -67,6 +79,8 @@ public class Startup
 
         app.UseAuthorization();
 
+        app.UseCors("NutriFitLogPolicy");
+        
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();

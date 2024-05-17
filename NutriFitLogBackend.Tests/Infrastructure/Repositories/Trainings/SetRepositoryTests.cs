@@ -101,7 +101,7 @@ public class SetRepositoryTests
         set.Weight = 110.0;
 
         // Act
-        await _sut.UpdateAsync(set);
+        _sut.Update(set);
         await _dbContext.SaveChangesAsync();
         var updatedSet = await _sut.GetByIdAsync(set.Id);
 

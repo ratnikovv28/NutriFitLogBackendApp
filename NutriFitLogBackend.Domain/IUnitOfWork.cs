@@ -7,7 +7,7 @@ namespace NutriFitLogBackend.Domain;
 public interface IUnitOfWork : IDisposable
 {
     IUserRepository UserRepository { get; set; }
-    IActionRepository ActionRepository { get; set; }
+    IStudentTrainerRepository StudentTrainerRepository { get; set; }
     
     ITrainingRepository TrainingRepository { get; set; }
     ITrainingExerciseRepository TrainingExerciseRepository { get; set; }

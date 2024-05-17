@@ -14,8 +14,7 @@ public class MealFoodConfiguration : IEntityTypeConfiguration<MealFood>
         builder.Property(mf => mf.Protein).HasColumnType("double precision").IsRequired(false);
         builder.Property(mf => mf.Fats).HasColumnType("double precision").IsRequired(false);
         builder.Property(mf => mf.Carbohydrates).HasColumnType("double precision").IsRequired(false);
-
-        builder.Property(mf => mf.Unit).HasConversion<int>();
+        
         builder.Property(mf => mf.Quantity).HasColumnType("double precision");
 
         builder.HasOne(mf => mf.DayPart)

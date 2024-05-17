@@ -1,9 +1,9 @@
 using AutoMapper;
 using NutriFitLogBackend.Domain;
 using NutriFitLogBackend.Domain.DTOs.Users;
+using NutriFitLogBackend.Domain.DTOs.Users.RequestDTOs;
 using NutriFitLogBackend.Domain.Entities.Users;
 using NutriFitLogBackend.Domain.Exceptions;
-using NutriFitLogBackend.Domain.Services;
 using NutriFitLogBackend.Domain.Services.Users;
 
 namespace NutriFitLogBackend.Application.Services.Users;
@@ -56,7 +56,7 @@ public class UserService : IUserService
 
         user.Roles = userDto.Roles;
         user.UpdatedDate = DateTime.UtcNow;
-        await _unitOfWork.UserRepository.UpdateAsync(user);
+        _unitOfWork.UserRepository.UpdateAsync(user);
         await _unitOfWork.SaveAsync();
         
         return _mapper.Map<UserDto>(user);
@@ -68,7 +68,114 @@ public class UserService : IUserService
         if (user is null)
             throw new UserNotFoundException(telegramId);
         
-        await _unitOfWork.UserRepository.DeleteAsync(user);
+        _unitOfWork.UserRepository.DeleteAsync(user);
+        await _unitOfWork.SaveAsync();
+    }
+    
+    public async Task<IReadOnlyCollection<UserDto>> GetStudents(long telegramId, bool activeStudents)
+    {   
+        var user = await _unitOfWork.UserRepository.GetByTelegramIdAsync(telegramId);
+        if (user is null)
+            throw new UserNotFoundException(telegramId);
+
+        var students = new List<User>();
+        var userStudents = user.Students.Where(st => st.IsWorking == activeStudents);
+        foreach (var userStudent in userStudents)
+        {
+            students.Add(await _unitOfWork.UserRepository.GetByIdAsync(userStudent.StudentId));
+        }  
+        
+        return _mapper.Map<IReadOnlyCollection<UserDto>>(students);
+    }
+    
+    public async Task<IReadOnlyCollection<UserDto>> GetTrainers(long telegramId)
+    {   
+        var user = await _unitOfWork.UserRepository.GetByTelegramIdAsync(telegramId);
+        if (user is null)
+            throw new UserNotFoundException(telegramId);
+
+        var trainerWhoWorkingWithUser = user.Trainers.Where(t => t.IsWorking == true);
+        
+        var trainers = new List<User>();
+        foreach (var studentTrainer in trainerWhoWorkingWithUser)
+        {
+            trainers.Add(await _unitOfWork.UserRepository.GetByIdAsync(studentTrainer.TrainerId));
+        }        
+        
+        return _mapper.Map<IReadOnlyCollection<UserDto>>(trainers);
+    }
+    
+    public async Task<UserDto> UpdateTrainerStatus(long telegramId)
+    {   
+        var user = await _unitOfWork.UserRepository.GetJustByTelegramIdAsync(telegramId);
+        if (user is null)
+            throw new UserNotFoundException(telegramId);
+
+        user.IsActiveTrainer = !user.IsActiveTrainer;
+        await _unitOfWork.SaveAsync();
+
+        return _mapper.Map<UserDto>(user);
+    }
+    
+    public async Task DeleteStudentTrainerRelationShip(long studentId, long trainerId)
+    {   
+        var student = await _unitOfWork.UserRepository.GetByTelegramIdAsync(studentId);
+        if (student is null)
+            throw new UserNotFoundException(studentId);
+        var trainer = await _unitOfWork.UserRepository.GetByTelegramIdAsync(trainerId);
+        if (trainer is null)
+            throw new UserNotFoundException(trainerId);
+
+        var studentTrainer = await _unitOfWork.StudentTrainerRepository.GetRelationShip(student.Id, trainer.Id);
+        _unitOfWork.StudentTrainerRepository.DeleteRelationShip(studentTrainer);
+        await _unitOfWork.SaveAsync();
+    }
+    
+    public async Task AddStudentToTrainer(long studentId, long trainerId)
+    {  
+        var trainer = await _unitOfWork.UserRepository.GetByTelegramIdAsync(trainerId);
+        if (trainer is null)
+            throw new UserNotFoundException(trainerId);
+        
+        if (trainer.IsActiveTrainer is false)
+            throw new Exception($"Trainer with ID = '{trainerId}' doesnt work right now");
+        
+        var student = await _unitOfWork.UserRepository.GetByTelegramIdAsync(studentId);
+        if (student is null)
+            throw new UserNotFoundException(studentId);
+        
+        var studentTrainer = await _unitOfWork.StudentTrainerRepository.GetRelationShip(student.Id, trainer.Id);
+        if (studentTrainer is not null)
+            throw new Exception(
+            $"Relationship between Student with ID = '{studentId}' and Trainer with ID = '{trainerId}' already exists");
+
+        studentTrainer = new StudentTrainer()
+        {
+            StudentId = student.Id,
+            TrainerId = trainer.Id
+        };
+        
+        await _unitOfWork.StudentTrainerRepository.AddRelationShip(studentTrainer);
+        await _unitOfWork.SaveAsync();
+    }
+    
+    public async Task CreateStudentTrainer(long studentId, long trainerId)
+    {   
+        var student = await _unitOfWork.UserRepository.GetByTelegramIdAsync(studentId);
+        if (student is null)
+            throw new UserNotFoundException(studentId);
+        var trainer = await _unitOfWork.UserRepository.GetByTelegramIdAsync(trainerId);
+        if (trainer is null)
+            throw new UserNotFoundException(trainerId);
+        
+        var studentTrainer = await _unitOfWork.StudentTrainerRepository.GetRelationShip(student.Id, trainer.Id);
+        if (studentTrainer is null)
+            throw new Exception(
+                $"Relationship between Student with ID = '{studentId}' and Trainer with ID = '{trainerId}' not exists");
+
+        studentTrainer.IsWorking = true;
+        
+        _unitOfWork.StudentTrainerRepository.UpdateRelationShip(studentTrainer);
         await _unitOfWork.SaveAsync();
     }
 }

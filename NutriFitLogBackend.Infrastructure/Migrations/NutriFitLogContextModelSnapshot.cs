@@ -58,6 +58,14 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("PictureUrl")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<int>("Unit")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.ToTable("Foods");
@@ -115,9 +123,6 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
                     b.Property<double>("Quantity")
                         .HasColumnType("double precision");
-
-                    b.Property<int>("Unit")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -242,7 +247,7 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                     b.ToTable("TrainingExercise");
                 });
 
-            modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Users.Action", b =>
+            modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Users.StudentTrainer", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -250,21 +255,23 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<long>("AdminId")
+                    b.Property<bool>("IsWorking")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("StudentId")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<long>("TrainerId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AdminId");
+                    b.HasIndex("StudentId");
 
-                    b.ToTable("Actions");
+                    b.HasIndex("TrainerId", "StudentId")
+                        .IsUnique();
+
+                    b.ToTable("StudentTrainer");
                 });
 
             modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Users.User", b =>
@@ -277,6 +284,9 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActiveTrainer")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Roles")
                         .IsRequired()
@@ -294,21 +304,6 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("UserUser", b =>
-                {
-                    b.Property<long>("StudentsId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("TrainersId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("StudentsId", "TrainersId");
-
-                    b.HasIndex("TrainersId");
-
-                    b.ToTable("UserUser");
                 });
 
             modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Nutrition.Meal", b =>
@@ -390,30 +385,23 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
                     b.Navigation("Training");
                 });
 
-            modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Users.Action", b =>
+            modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Users.StudentTrainer", b =>
                 {
-                    b.HasOne("NutriFitLogBackend.Domain.Entities.Users.User", "Admin")
-                        .WithMany("Actions")
-                        .HasForeignKey("AdminId")
+                    b.HasOne("NutriFitLogBackend.Domain.Entities.Users.User", "Student")
+                        .WithMany("Trainers")
+                        .HasForeignKey("StudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Admin");
-                });
-
-            modelBuilder.Entity("UserUser", b =>
-                {
-                    b.HasOne("NutriFitLogBackend.Domain.Entities.Users.User", null)
-                        .WithMany()
-                        .HasForeignKey("StudentsId")
+                    b.HasOne("NutriFitLogBackend.Domain.Entities.Users.User", "Trainer")
+                        .WithMany("Students")
+                        .HasForeignKey("TrainerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NutriFitLogBackend.Domain.Entities.Users.User", null)
-                        .WithMany()
-                        .HasForeignKey("TrainersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("Student");
+
+                    b.Navigation("Trainer");
                 });
 
             modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Nutrition.DayPart", b =>
@@ -448,9 +436,11 @@ namespace NutriFitLogBackend.Infrastructure.Migrations
 
             modelBuilder.Entity("NutriFitLogBackend.Domain.Entities.Users.User", b =>
                 {
-                    b.Navigation("Actions");
-
                     b.Navigation("Meals");
+
+                    b.Navigation("Students");
+
+                    b.Navigation("Trainers");
 
                     b.Navigation("Trainings");
                 });

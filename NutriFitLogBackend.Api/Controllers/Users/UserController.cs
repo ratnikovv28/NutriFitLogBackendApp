@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using NutriFitLogBackend.Domain.DTOs.Users;
-using NutriFitLogBackend.Domain.Services;
+using NutriFitLogBackend.Domain.DTOs.Users.RequestDTOs;
 using NutriFitLogBackend.Domain.Services.Users;
 
 namespace NutriFitLogBackend.Controllers.Users;
@@ -30,6 +30,27 @@ public class UserController : ControllerBase
         return Ok(user);
     }
     
+    [HttpGet("GetTrainers/{telegramId}")]
+    public async Task<ActionResult<IReadOnlyCollection<UserDto>>> GetTrainers(long telegramId)
+    {
+        var user = await _userService.GetTrainers(telegramId);
+        return Ok(user);
+    }
+    
+    [HttpPost("GetStudents")]
+    public async Task<ActionResult<IReadOnlyCollection<UserDto>>> GetStudents(TrainerStudentsDto dto)
+    {
+        var user = await _userService.GetStudents(dto.TelegramId, dto.AreActive);
+        return Ok(user);
+    }
+    
+    [HttpPut("UpdateTrainerStatus")]
+    public async Task<ActionResult<UserDto>> UpdateUserTrainerStatus([FromBody] CreateUserDto dto)
+    {
+        var updatedUser = await _userService.UpdateTrainerStatus(dto.TelegramId);
+        return Ok(updatedUser);
+    }
+    
     [HttpGet("GetAll")]
     public async Task<ActionResult<UserDto>> GetAllUsers()
     {
@@ -48,6 +69,27 @@ public class UserController : ControllerBase
     public async Task<IActionResult> Delete(long telegramId)
     {
         await _userService.DeleteUserByTelegramId(telegramId);
+        return Ok();
+    }
+    
+    [HttpDelete("DeleteStudentTrainer")]
+    public async Task<IActionResult> Delete([FromBody] StudentTrainerDto dto)
+    {
+        await _userService.DeleteStudentTrainerRelationShip(dto.StudentTelegramId, dto.TrainerTelegramId);
+        return Ok();
+    }
+    
+    [HttpPost("AddStudentTrainer")]
+    public async Task<ActionResult<UserDto>> AddStudentTrainer([FromBody] StudentTrainerDto dto)
+    {
+        await _userService.AddStudentToTrainer(dto.StudentTelegramId, dto.TrainerTelegramId);
+        return Ok();
+    }
+    
+    [HttpPost("CreateStudentTrainer")]
+    public async Task<ActionResult<UserDto>> CreateStudentTrainer([FromBody] StudentTrainerDto dto)
+    {
+        await _userService.CreateStudentTrainer(dto.StudentTelegramId, dto.TrainerTelegramId);
         return Ok();
     }
 }

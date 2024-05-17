@@ -8,7 +8,6 @@ public class MealFood
     public double? Fats { get; set; }
     public double? Carbohydrates { get; set; }    
     
-    public UnitOfMeasure Unit { get; set; }
     public double Quantity { get; set; }
     
     public long DayPartId { get; set; }

@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
 using NutriFitLogBackend.Infrastructure.Database;
 
 namespace NutriFitLogBackend;
 
+[ExcludeFromCodeCoverage]
 public class Program
 {
     public static void Main(string[] args)

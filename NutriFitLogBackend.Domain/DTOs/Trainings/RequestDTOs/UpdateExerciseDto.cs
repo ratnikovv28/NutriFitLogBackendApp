@@ -6,5 +6,5 @@ public class UpdateExerciseDto
     public long TrainingId { get; set; }
     public long ExerciseId { get; set; }
     public List<SetDto> Sets { get; set; }
-    public long TrainerId { get; set; } = -1;
+    public long TrainerId { get; set; } = 0;
 }

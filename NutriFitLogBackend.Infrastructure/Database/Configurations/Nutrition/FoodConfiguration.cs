@@ -16,12 +16,12 @@ public class FoodConfiguration : IEntityTypeConfiguration<Food>
 
         builder.Property(f => f.Description)
             .HasMaxLength(200);
-
-        //builder.Property(f => f.Calories).HasColumnType("double precision");
-        //builder.Property(f => f.Protein).HasColumnType("double precision");
-        //builder.Property(f => f.Fats).HasColumnType("double precision");
-        //builder.Property(f => f.Carbohydrates).HasColumnType("double precision");
-
+        
+        builder.Property(e => e.PictureUrl)
+            .HasMaxLength(2048);
+        
+        builder.Property(mf => mf.Unit).HasConversion<int>();
+        
         builder.HasMany(f => f.Meals)
             .WithOne(mf => mf.Food)
             .HasForeignKey(mf => mf.FoodId);

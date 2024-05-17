@@ -7,5 +7,6 @@ public class UserDto
     public long TelegramId { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }
-    public List<UserRole> Roles { get; set; } = new();
+    public bool IsActiveTrainer { get; set; }
+    public List<string> Roles { get; set; } = new();
 }

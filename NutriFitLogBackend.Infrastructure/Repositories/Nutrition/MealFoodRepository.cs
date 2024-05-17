@@ -13,6 +13,12 @@ public class MealFoodRepository : IMealFoodRepository
         _dbContext = dbContext;
     }
     
+    public async Task<MealFood> GetById(long mealFoodId)
+    {
+        return await _dbContext.MealFoods.FindAsync(mealFoodId);
+    }
+
+    
     public async Task<MealFood> AddAsync(MealFood mealFood)
     {
         await _dbContext.MealFoods.AddAsync(mealFood);

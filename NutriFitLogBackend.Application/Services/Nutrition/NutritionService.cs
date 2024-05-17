@@ -36,14 +36,31 @@ public class NutritionService : INutritionService
         return _mapper.Map<IReadOnlyCollection<FoodDto>>(foods);
     }
 
-    // Получение информации об еде 
-    public async Task<IReadOnlyCollection<MealFoodDto>> GetUserFoodsByDateAsync(long telegramId, DateOnly date, long trainerId = 0)
+    // Получение информации о еде
+    public async Task<IReadOnlyCollection<FoodDto>> GetAvailableUserFoodAsync(long telegramId, long mealId, long dayPartId, long trainerId = 0)
     {
         // Получение пользователя
         var user = await GetUser(telegramId);
         
         // Если пользователь не работает с тренером, то ошибка
-        UserWorkWithTrainerGuard(user, trainerId);
+        await UserWorkWithTrainerGuard(user, trainerId);
+        
+        var userMeal = GetMealById(user, mealId);
+        var foodsByDayPart = userMeal.Foods.Where(mf => mf.DayPartId == dayPartId).ToList();
+        var foods = await _unitOfWork.FoodRepository.GetAllAsync();
+        var notExistFoods = foods.Where(e => !foodsByDayPart.Exists(mf => mf.FoodId == e.Id));
+        
+        return _mapper.Map<IReadOnlyCollection<FoodDto>>(notExistFoods);
+    }
+    
+    // Получение информации об еде 
+    public async Task<MealDto> GetUserMealByDateAsync(long telegramId, DateOnly date, long trainerId = 0)
+    {
+        // Получение пользователя
+        var user = await GetUser(telegramId);
+        
+        // Если пользователь не работает с тренером, то ошибка
+        await UserWorkWithTrainerGuard(user, trainerId);
         
         // Приемы пищи по дню
         var mealByDate = user.Meals.FirstOrDefault(m => m.CreatedDate.ToDateOnly() == date);
@@ -61,10 +78,7 @@ public class NutritionService : INutritionService
             await _unitOfWork.SaveAsync();
         }
         
-        // Еда в нужный день
-        var foodsByDate = mealByDate.Foods;
-        
-        return _mapper.Map<IReadOnlyCollection<MealFoodDto>>(foodsByDate);
+        return _mapper.Map<MealDto>(mealByDate);
     }
     
     // Добавление еды пользователю
@@ -75,7 +89,7 @@ public class NutritionService : INutritionService
 
         // Проверки на валидность входных данных
         GetMealById(user, dto.MealId);
-        UserWorkWithTrainerGuard(user, dto.TrainerId);
+        await UserWorkWithTrainerGuard(user, dto.TrainerId);
         await FoodExistsGuard(dto.FoodId);
         FoodExistsInMealWithDayPartGuard(user, dto.MealId, dto.FoodId, dto.DayPartId);
 
@@ -101,7 +115,7 @@ public class NutritionService : INutritionService
         // Получение пользователя
         var user = await GetUser(dto.TelegramId);
 
-        UserWorkWithTrainerGuard(user, dto.TrainerId);
+        await UserWorkWithTrainerGuard(user, dto.TrainerId);
 
         var userMealFood = GetUserFoodByMeal(user, dto.MealId, dto.FoodId, dto.DayPartId);
         
@@ -130,11 +144,11 @@ public class NutritionService : INutritionService
         var user = await GetUser(telegramId);
 
         // Проверки на валидность входных данных
-        UserWorkWithTrainerGuard(user, trainerId);
+        await UserWorkWithTrainerGuard(user, trainerId);
 
         var userMealFood = GetUserFoodByMeal(user, mealId, foodId, dayPartId);
-
-        _unitOfWork.MealFoodRepository.Delete(userMealFood);
+        var userFoodByMeal = await _unitOfWork.MealFoodRepository.GetById(userMealFood.Id);
+        _unitOfWork.MealFoodRepository.Delete(userFoodByMeal);
         await _unitOfWork.SaveAsync();
     }
     
@@ -147,10 +161,21 @@ public class NutritionService : INutritionService
         return user;
     }
     
-    private void UserWorkWithTrainerGuard(User user, long trainerId)
+    private async Task UserWorkWithTrainerGuard(User user, long trainerId)
     {
-        if(trainerId != 0 && user.Trainers.All(u => u.TelegramId != trainerId))
-            throw new NoAccessUserDataException(user.TelegramId, trainerId);
+        if(trainerId == 0) return;
+        
+        var student = await _unitOfWork.UserRepository.GetByTelegramIdAsync(user.TelegramId);
+        if (student is null)
+            throw new UserNotFoundException(user.TelegramId);
+        var trainer = await _unitOfWork.UserRepository.GetByTelegramIdAsync(trainerId);
+        if (trainer is null)
+            throw new UserNotFoundException(trainerId);
+
+        var studentTrainer = await _unitOfWork.StudentTrainerRepository.GetRelationShip(student.Id, trainer.Id);
+        if (studentTrainer is null)
+            throw new StudentTrainerWorkException(
+                $"Student with Id = '{user.TelegramId}' doesnt work with Trainer with Id = '{trainerId}'");
     }
     
     private Meal GetMealById(User user, long mealId)
@@ -171,7 +196,7 @@ public class NutritionService : INutritionService
     private void FoodExistsInMealWithDayPartGuard(User user, long mealId, long foodId, long dayPartId)
     {
         if (user.Meals.Single(m => m.Id == mealId).Foods
-            .Exists(mf => mf.MealId == mealId && mf.DayPartId == dayPartId))
+            .Exists(mf => mf.FoodId == foodId && mf.DayPartId == dayPartId))
             throw new FoodExistsInMealDayPartException(mealId, foodId, dayPartId);
     }
 

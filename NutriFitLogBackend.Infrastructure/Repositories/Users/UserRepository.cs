@@ -19,6 +19,11 @@ public class UserRepository : IUserRepository
         return await _dbContext.Users.FindAsync(id);
     }
     
+    public async Task<User> GetJustByTelegramIdAsync(long telegramId)
+    {
+        return await _dbContext.Users.FirstOrDefaultAsync(u => u.TelegramId == telegramId);
+    }
+    
     public async Task<User> GetByTelegramIdAsync(long telegramId)
     {
         return await _dbContext.Users
@@ -29,14 +34,14 @@ public class UserRepository : IUserRepository
             .Include(u => u.Trainings)
                 .ThenInclude(t => t.Exercises)
                     .ThenInclude(te => te.Sets)
-            .Include(u => u.Trainers)
-            .Include(u => u.Students)
             .Include(u => u.Meals)
                 .ThenInclude(m => m.Foods)
                     .ThenInclude(mf => mf.Food)
             .Include(u => u.Meals)
                 .ThenInclude(f => f.Foods)
                     .ThenInclude(mf => mf.DayPart)
+            .Include(u => u.Students)
+            .Include(u => u.Trainers)
             .FirstOrDefaultAsync(u => u.TelegramId == telegramId);
     }
 
@@ -51,14 +56,14 @@ public class UserRepository : IUserRepository
         return user;
     }
 
-    public async Task UpdateAsync(User user)
+    public void UpdateAsync(User user)
     {
-        await Task.Run(() => _dbContext.Users.Update(user));
+        _dbContext.Users.Update(user);
     }
  
-    public async Task DeleteAsync(User user)
+    public void DeleteAsync(User user)
     {
-        await Task.Run(() => _dbContext.Users.Remove(user));
+        _dbContext.Users.Remove(user);
     }
     
     public Task<bool> ExistAsync(long telegramId)

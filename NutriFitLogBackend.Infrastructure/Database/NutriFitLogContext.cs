@@ -1,4 +1,3 @@
-using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using NutriFitLogBackend.Domain.Entities.Nutrition;
@@ -7,7 +6,6 @@ using NutriFitLogBackend.Domain.Entities.Users;
 using NutriFitLogBackend.Infrastructure.Database.Configurations.Nutrition;
 using NutriFitLogBackend.Infrastructure.Database.Configurations.Trainings;
 using NutriFitLogBackend.Infrastructure.Database.Configurations.Users;
-using Action = NutriFitLogBackend.Domain.Entities.Users.Action;
 
 namespace NutriFitLogBackend.Infrastructure.Database;
 
@@ -20,7 +18,7 @@ public class NutriFitLogContext : DbContext
     }
     
     public DbSet<User> Users { get; set; }
-    public DbSet<Action> Actions { get; set; }
+    public DbSet<StudentTrainer> StudentTrainer { get; set; }
         
     public DbSet<Exercise> Exercises { get; set; }
     public DbSet<Set> Sets { get; set; }
@@ -46,7 +44,7 @@ public class NutriFitLogContext : DbContext
         modelBuilder.Entity<TrainingExercise>()
             .Property(te => te.Id)
             .ValueGeneratedOnAdd();
-        modelBuilder.ApplyConfiguration(new ActionConfiguration());
+        modelBuilder.ApplyConfiguration(new StudentTrainerConfiguration());
         
         modelBuilder.ApplyConfiguration(new ExerciseConfiguration());
         modelBuilder.ApplyConfiguration(new SetConfiguration());

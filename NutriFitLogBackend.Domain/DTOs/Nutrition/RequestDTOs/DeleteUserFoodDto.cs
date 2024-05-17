@@ -6,5 +6,5 @@ public class DeleteUserFoodDto
     public long MealId { get; set; }
     public long FoodId { get; set; }
     public long DayPartId { get; set; }
-    public long TrainerId { get; set; } = -1;
+    public long TrainerId { get; set; } = 0;
 }

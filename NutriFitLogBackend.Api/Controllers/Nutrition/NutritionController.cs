@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using NutriFitLogBackend.Domain.DTOs.Nutrition;
 using NutriFitLogBackend.Domain.DTOs.Nutrition.RequestDTOs;
-using NutriFitLogBackend.Domain.DTOs.Trainings;
 using NutriFitLogBackend.Domain.Services.Nutrition;
 
 namespace NutriFitLogBackend.Controllers.Nutrition;
@@ -18,9 +17,15 @@ public class NutritionController : ControllerBase
     }
 
     [HttpGet("GetAllDayParts")]
-    public async Task<ActionResult<IReadOnlyCollection<DayPartDto>>> GetAllExercises()
+    public async Task<ActionResult<IReadOnlyCollection<DayPartDto>>> GetAllDayParts()
     {
         return Ok(await _nutritionService.GetAllDayPartsAsync());
+    }
+    
+    [HttpPost("GetAvailableUserFoods")]
+    public async Task<ActionResult<IReadOnlyCollection<FoodDto>>> GetAvailableUserFoods([FromBody] AvailableUserFoodDto dto)
+    {
+        return Ok(await _nutritionService.GetAvailableUserFoodAsync(dto.TelegramId, dto.MealId, dto.DayPartId, dto.TrainerId));
     }
     
     [HttpGet("GetAllFoods")]
@@ -29,10 +34,10 @@ public class NutritionController : ControllerBase
         return Ok(await _nutritionService.GetAllFoodsAsync());
     }
     
-    [HttpPost("GetUserFoodsByDate")]
-    public async Task<ActionResult<IReadOnlyCollection<MealFoodDto>>> GetUserFoodsByDate([FromBody] UserFoodsByDateDto dto)
+    [HttpPost("GetUserMealByDate")]
+    public async Task<ActionResult<MealDto>> GetUserMealByDate([FromBody] UserFoodsByDateDto dto)
     {
-        return Ok(await _nutritionService.GetUserFoodsByDateAsync(dto.TelegramId, dto.Date, dto.TrainerId));
+        return Ok(await _nutritionService.GetUserMealByDateAsync(dto.TelegramId, dto.Date, dto.TrainerId));
     }
     
     [HttpPost("AddUserFood")]
@@ -42,15 +47,15 @@ public class NutritionController : ControllerBase
         return Ok();
     }
 
-    [HttpPut("UpdateSetsExercise")]
-    public async Task<ActionResult<IReadOnlyCollection<ExerciseDto>>> UpdateSetsExercise([FromBody] RequestFoodDto dto)
+    [HttpPut("UpdateFoodMeal")]
+    public async Task<ActionResult> UpdateFoodMeal([FromBody] RequestFoodDto dto)
     {
         await _nutritionService.UpdateFoodMealAsync(dto);
         return Ok();
     }
     
     [HttpDelete("DeleteUserFood")]
-    public async Task<ActionResult<IReadOnlyCollection<ExerciseDto>>> DeleteFood([FromBody] DeleteUserFoodDto dto)
+    public async Task<ActionResult> DeleteFood([FromBody] DeleteUserFoodDto dto)
     {
         await _nutritionService.DeleteFoodAsync(dto.TelegramId, dto.MealId, dto.FoodId, dto.DayPartId, dto.TrainerId);
         return Ok();

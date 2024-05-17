@@ -10,4 +10,6 @@ public interface ISetRepository
     void Update(Set set);
     void Delete(Set set);
     void DeleteRangeAsync(IReadOnlyCollection<Set> sets);
+    Task<IReadOnlyCollection<Set>> GetByTrainingAndExerciseIdAsync(long trainingId, long exerciseId);
+    Task<Set> GetByTrainingAndExerciseIdAndIdAsync(long trainingId, long exerciseId, long setId);
 }

@@ -19,6 +19,22 @@ public class SetRepository : ISetRepository
         return await _dbContext.Sets.FindAsync(id);
     }
     
+    public async Task<IReadOnlyCollection<Set>> GetByTrainingAndExerciseIdAsync(long trainingId, long exerciseId)
+    {
+        return await _dbContext.Sets
+            .AsNoTracking()
+            .Where(x => x.TrainingId == trainingId &&
+                        x.ExerciseId == exerciseId).ToListAsync();
+    }
+    
+    public async Task<Set> GetByTrainingAndExerciseIdAndIdAsync(long trainingId, long exerciseId, long setId)
+    {
+        return await _dbContext.Sets
+            .AsNoTracking()
+            .SingleOrDefaultAsync(x => x.TrainingId == trainingId &&
+                        x.ExerciseId == exerciseId && x.Id == setId);
+    }
+    
     public async Task<IReadOnlyCollection<Set>> GetAllAsync()
     {
         return await _dbContext.Sets.ToListAsync();

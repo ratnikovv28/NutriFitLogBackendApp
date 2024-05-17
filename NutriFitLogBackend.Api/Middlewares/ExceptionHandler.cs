@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using NutriFitLogBackend.Domain.Common;
 using NutriFitLogBackend.Domain.Exceptions;
 
 namespace NutriFitLogBackend.Middlewares;
 
+[ExcludeFromCodeCoverage]
 public class ExceptionHandler
 {
     private readonly RequestDelegate _next;
@@ -29,11 +31,8 @@ public class ExceptionHandler
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)GetStatusCode(exception);
 
-        // TODO: Log InternalServerError Exceptions
-
         var errorMessage = exception.InnerException?.Message ?? exception.Message;
 
-        // TODO: Use Json converter
         var jsonMesage = $"{{\"message\": \"{errorMessage}\"}}";
 
         await context.Response.WriteAsync(jsonMesage);

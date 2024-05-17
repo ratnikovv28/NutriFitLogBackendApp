@@ -16,7 +16,7 @@ public class RequestFoodDtoValidator : AbstractValidator<RequestFoodDto>
         RuleFor(x => x.DayPartId).NotEmpty().WithMessage("DayPart ID is required.");
         RuleFor(x => x.DayPartId).GreaterThan(0).WithMessage("Day Part ID must be positive.");
         RuleFor(x => x.TrainerId).GreaterThanOrEqualTo(0).WithMessage("Trainer ID must be positive.");
-        RuleFor(x => x.Quantity).GreaterThan(0).WithMessage("Quantity must be positive.");
+        RuleFor(x => x.Quantity).GreaterThanOrEqualTo(0).WithMessage("Quantity must be positive.");
         RuleFor(x => x.Calories).GreaterThanOrEqualTo(0).When(x => x.Calories.HasValue).WithMessage("Calories must not be negative.");
         RuleFor(x => x.Protein).GreaterThanOrEqualTo(0).When(x => x.Protein.HasValue).WithMessage("Protein must not be negative.");
         RuleFor(x => x.Fats).GreaterThanOrEqualTo(0).When(x => x.Fats.HasValue).WithMessage("Fats must not be negative.");

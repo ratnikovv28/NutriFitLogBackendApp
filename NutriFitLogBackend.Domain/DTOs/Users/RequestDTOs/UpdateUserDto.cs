@@ -1,6 +1,6 @@
 using NutriFitLogBackend.Domain.Entities.Users;
 
-namespace NutriFitLogBackend.Domain.DTOs.Users;
+namespace NutriFitLogBackend.Domain.DTOs.Users.RequestDTOs;
 
 public class UpdateUserDto
 {

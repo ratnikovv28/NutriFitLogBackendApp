@@ -1,5 +1,6 @@
 using FluentValidation;
 using NutriFitLogBackend.Domain.DTOs.Users;
+using NutriFitLogBackend.Domain.DTOs.Users.RequestDTOs;
 
 namespace NutriFitLogBackend.Controllers.Users.Validators;
 
