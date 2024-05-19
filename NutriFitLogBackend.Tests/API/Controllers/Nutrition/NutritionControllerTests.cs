@@ -27,7 +27,7 @@ public class NutritionControllerTests
     }
 
     [Fact]
-    public async Task GetAllDayParts_ReturnsOkObjectResult_WithDayParts()
+    public async Task GetAllDayParts_WhenCalled_ReturnsOkObjectResultWithDayParts()
     {
         // Arrange
         var dayParts = _fixture.CreateMany<DayPartDto>().ToList();
@@ -43,7 +43,7 @@ public class NutritionControllerTests
     }
 
     [Fact]
-    public async Task GetAllFoods_ReturnsOkObjectResult_WithFoods()
+    public async Task GetAllFoods_WhenCalled_ReturnsOkObjectResultWithFoods()
     {
         // Arrange
         var foods = _fixture.CreateMany<FoodDto>().ToList();
@@ -59,7 +59,24 @@ public class NutritionControllerTests
     }
 
     [Fact]
-    public async Task GetUserFoodsByDate_ReturnsOkObjectResult_WithUserFoods()
+    public async Task GetAvailableUserFoods_WithValidDto_ReturnsOkObjectResultWithAvailableUserFoods()
+    {
+        // Arrange
+        var dto = _fixture.Create<AvailableUserFoodDto>();
+        var availableFoods = _fixture.CreateMany<FoodDto>().ToList();
+        _nutritionServiceMock.Setup(s => s.GetAvailableUserFoodAsync(dto.TelegramId, dto.MealId, dto.DayPartId, dto.TrainerId)).ReturnsAsync(availableFoods);
+
+        // Act
+        var result = await _controller.GetAvailableUserFoods(dto);
+
+        // Assert
+        result.Result.Should().BeOfType<OkObjectResult>();
+        var okResult = result.Result as OkObjectResult;
+        okResult.Value.Should().BeEquivalentTo(availableFoods);
+    }
+
+    [Fact]
+    public async Task GetUserMealByDate_WithValidDto_ReturnsOkObjectResultWithUserMeal()
     {
         // Arrange
         var telegramId = _fixture.Create<long>();
@@ -71,21 +88,20 @@ public class NutritionControllerTests
             Date = date,
             TrainerId = trainerId
         };
-        
-        var userFoods = _fixture.CreateMany<MealFoodDto>().ToList();
-        _nutritionServiceMock.Setup(s => s.GetUserFoodsByDateAsync(dto.TelegramId, dto.Date, dto.TrainerId)).ReturnsAsync(userFoods);
+        var meal = _fixture.Create<MealDto>();
+        _nutritionServiceMock.Setup(s => s.GetUserMealByDateAsync(dto.TelegramId, dto.Date, dto.TrainerId)).ReturnsAsync(meal);
 
         // Act
-        var result = await _controller.GetUserFoodsByDate(dto);
+        var result = await _controller.GetUserMealByDate(dto);
 
         // Assert
         result.Result.Should().BeOfType<OkObjectResult>();
         var okResult = result.Result as OkObjectResult;
-        okResult.Value.Should().BeEquivalentTo(userFoods);
+        okResult.Value.Should().BeEquivalentTo(meal);
     }
 
     [Theory, AutoData]
-    public async Task AddUserFood_ReturnsOkResult(RequestFoodDto dto)
+    public async Task AddUserFood_WithValidDto_ReturnsOkResult(RequestFoodDto dto)
     {
         // Arrange
         _nutritionServiceMock.Setup(s => s.AddFoodAsync(dto)).Returns(Task.CompletedTask);
@@ -98,7 +114,7 @@ public class NutritionControllerTests
     }
 
     [Theory, AutoData]
-    public async Task UpdateFoodMeal_ReturnsOkResult(RequestFoodDto dto)
+    public async Task UpdateFoodMeal_WithValidDto_ReturnsOkResult(RequestFoodDto dto)
     {
         // Arrange
         _nutritionServiceMock.Setup(s => s.UpdateFoodMealAsync(dto)).Returns(Task.CompletedTask);
@@ -111,7 +127,7 @@ public class NutritionControllerTests
     }
 
     [Theory, AutoData]
-    public async Task DeleteFood_ReturnsOkResult(DeleteUserFoodDto dto)
+    public async Task DeleteFood_WithValidDto_ReturnsOkResult(DeleteUserFoodDto dto)
     {
         // Arrange
         _nutritionServiceMock.Setup(s => s.DeleteFoodAsync(dto.TelegramId, dto.MealId, dto.FoodId, dto.DayPartId, dto.TrainerId)).Returns(Task.CompletedTask);

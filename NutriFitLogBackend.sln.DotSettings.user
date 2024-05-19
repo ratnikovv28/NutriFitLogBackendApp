@@ -3,10 +3,32 @@
   &lt;Assembly Path="C:\Users\megas\.nuget\packages\fluentvalidation\11.9.0\lib\net7.0\FluentValidation.dll" /&gt;&#xD;
 &lt;/AssemblyExplorer&gt;</s:String>
 	<s:String x:Key="/Default/Environment/Highlighting/HighlightingSourceSnapshotLocation/@EntryValue">C:\Users\megas\AppData\Local\JetBrains\Rider2023.3\resharper-host\temp\Rider\vAny\CoverageData\_NutriFitLogBackend.-821646621\Snapshot\snapshot.utdcvr</s:String>
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a22a4dc7_002D5855_002D4669_002D8ebc_002D8eec81733977/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from Solution #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=06f2ff5f_002Df4cb_002D4e08_002D8bd4_002De7bccf710827/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from Solution #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=1dfa2244_002D962c_002D405d_002D8284_002Df9de59dc6401/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="GetAvailableUserFoodAsync_ReturnsAvailableFoods" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a22a4dc7_002D5855_002D4669_002D8ebc_002D8eec81733977/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from Solution #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=a8940367_002D2025_002D490b_002Dae9b_002Db25d86189cbf/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from Solution" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=bf2150dd_002D4a62_002D4ad5_002Db43b_002Dd7f45669380c/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="All tests from Solution #4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Solution /&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c17eeca5_002D6c38_002D494e_002D9d52_002D955f19a63622/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="UpdateSetsExerciseAsync_UpdatesSets #2" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::TrainingServiceTests.UpdateSetsExerciseAsync_UpdatesSets&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=c49d4afa_002D1483_002D4636_002D863c_002Df86b293078b4/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="UpdateSetsExerciseAsync_UpdatesSets" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;TestAncestor&gt;&#xD;
+    &lt;TestId&gt;xUnit::12FB8F78-983C-46C5-A2F6-D365C0002B30::net7.0::TrainingServiceTests.UpdateSetsExerciseAsync_UpdatesSets&lt;/TestId&gt;&#xD;
+  &lt;/TestAncestor&gt;&#xD;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=d3eb7b7e_002Dea28_002D4902_002Da966_002Db50d90fae79f/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="UpdateSetsExerciseAsync_UpdatesSets #3" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;Solution /&gt;&#xD;
 &lt;/SessionState&gt;</s:String>
 	

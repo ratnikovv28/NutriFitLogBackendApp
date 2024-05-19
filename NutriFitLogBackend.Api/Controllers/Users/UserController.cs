@@ -15,13 +15,6 @@ public class UserController : ControllerBase
     {
         _userService = userService ?? throw new ArgumentNullException(nameof(userService));
     }
-        
-    [HttpPost("Create")]
-    public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto dto)
-    {
-        var createdUser = await _userService.CreateUser(dto);
-        return Ok(createdUser);
-    }
     
     [HttpGet("Get/{telegramId}")]
     public async Task<ActionResult<UserDto>> Get(long telegramId)
@@ -37,11 +30,32 @@ public class UserController : ControllerBase
         return Ok(user);
     }
     
+    [HttpPost("Create")]
+    public async Task<ActionResult<UserDto>> CreateUser([FromBody] CreateUserDto dto)
+    {
+        var createdUser = await _userService.CreateUser(dto);
+        return Ok(createdUser);
+    }
+    
     [HttpPost("GetStudents")]
     public async Task<ActionResult<IReadOnlyCollection<UserDto>>> GetStudents(TrainerStudentsDto dto)
     {
         var user = await _userService.GetStudents(dto.TelegramId, dto.AreActive);
         return Ok(user);
+    }
+    
+    [HttpPost("AddStudentTrainer")]
+    public async Task<ActionResult> AddStudentTrainer([FromBody] StudentTrainerDto dto)
+    {
+        await _userService.AddStudentToTrainer(dto.StudentTelegramId, dto.TrainerTelegramId);
+        return Ok();
+    }
+    
+    [HttpPost("CreateStudentTrainer")]
+    public async Task<ActionResult> CreateStudentTrainer([FromBody] StudentTrainerDto dto)
+    {
+        await _userService.CreateStudentTrainer(dto.StudentTelegramId, dto.TrainerTelegramId);
+        return Ok();
     }
     
     [HttpPut("UpdateTrainerStatus")]
@@ -51,45 +65,10 @@ public class UserController : ControllerBase
         return Ok(updatedUser);
     }
     
-    [HttpGet("GetAll")]
-    public async Task<ActionResult<UserDto>> GetAllUsers()
-    {
-        var users = await _userService.GetUsers();
-        return Ok(users);
-    }
-
-    [HttpPut("Update")]
-    public async Task<ActionResult<UserDto>> UpdateUser([FromBody] UpdateUserDto dto)
-    {
-        var updatedUser = await _userService.UpdateUser(dto);
-        return Ok(updatedUser);
-    }
-
-    [HttpDelete("Delete/{telegramId}")]
-    public async Task<IActionResult> Delete(long telegramId)
-    {
-        await _userService.DeleteUserByTelegramId(telegramId);
-        return Ok();
-    }
-    
     [HttpDelete("DeleteStudentTrainer")]
     public async Task<IActionResult> Delete([FromBody] StudentTrainerDto dto)
     {
         await _userService.DeleteStudentTrainerRelationShip(dto.StudentTelegramId, dto.TrainerTelegramId);
-        return Ok();
-    }
-    
-    [HttpPost("AddStudentTrainer")]
-    public async Task<ActionResult<UserDto>> AddStudentTrainer([FromBody] StudentTrainerDto dto)
-    {
-        await _userService.AddStudentToTrainer(dto.StudentTelegramId, dto.TrainerTelegramId);
-        return Ok();
-    }
-    
-    [HttpPost("CreateStudentTrainer")]
-    public async Task<ActionResult<UserDto>> CreateStudentTrainer([FromBody] StudentTrainerDto dto)
-    {
-        await _userService.CreateStudentTrainer(dto.StudentTelegramId, dto.TrainerTelegramId);
         return Ok();
     }
 }

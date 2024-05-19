@@ -24,22 +24,6 @@ public class ExercisesRepository : IExercisesRepository
         return await _dbContext.Exercises.ToListAsync();
     }
 
-    public async Task<Exercise> AddAsync(Exercise exercise)
-    {
-        await _dbContext.Exercises.AddAsync(exercise);
-        return exercise;
-    }
-
-    public async Task UpdateAsync(Exercise exercise)
-    {
-        await Task.Run(() => _dbContext.Exercises.Update(exercise));
-    }
- 
-    public void DeleteAsync(Exercise exercise)
-    {
-        _dbContext.Exercises.Remove(exercise);
-    }
-
     public Task<bool> ExistAsync(long exerciseId)
     {
         return _dbContext.Exercises.AnyAsync(e => e.Id == exerciseId);

@@ -30,10 +30,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Domain\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\NutriFitLogBackend.Api\NutriFitLogBackend.Api.csproj" />
       <ProjectReference Include="..\NutriFitLogBackend.Domain\NutriFitLogBackend.Domain.csproj" />
       <ProjectReference Include="..\NutriFitLogBackend.Infrastructure\NutriFitLogBackend.Infrastructure.csproj" />

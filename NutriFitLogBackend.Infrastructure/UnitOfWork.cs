@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using NutriFitLogBackend.Domain;
 using NutriFitLogBackend.Domain.Repositories.Nutrition;
 using NutriFitLogBackend.Domain.Repositories.Trainings;
@@ -6,6 +7,7 @@ using NutriFitLogBackend.Infrastructure.Database;
 
 namespace NutriFitLogBackend.Infrastructure;
 
+[ExcludeFromCodeCoverage]
 public class UnitOfWork : IUnitOfWork
 {   
     private readonly NutriFitLogContext _nutriFitLogContext;
@@ -49,7 +51,7 @@ public class UnitOfWork : IUnitOfWork
         StudentTrainerRepository = studentTrainerRepository;
     }
     
-    public async Task<int> SaveAsync() => await _nutriFitLogContext.SaveChangesAsync();
+    public async Task SaveAsync() => await _nutriFitLogContext.SaveChangesAsync();
 
     public void Dispose() => _nutriFitLogContext.Dispose();
 }

@@ -13,25 +13,25 @@ using Xunit;
 
 namespace NutriFitLogBackend.Tests.API.Controllers.Trainings;
 
-public class TrainingsControllerTests
+public class TrainingControllerTests
 {
-    private readonly Mock<ITrainingService> _mockTrainingService;
+    private readonly Mock<ITrainingService> _trainingServiceMock;
     private readonly TrainingController _controller;
     private readonly IFixture _fixture;
 
-    public TrainingsControllerTests()
+    public TrainingControllerTests()
     {
-        _mockTrainingService = new Mock<ITrainingService>();
-        _controller = new TrainingController(_mockTrainingService.Object);
+        _trainingServiceMock = new Mock<ITrainingService>();
+        _controller = new TrainingController(_trainingServiceMock.Object);
         _fixture = new Fixture().Customize(new AutoMoqCustomization { ConfigureMembers = true });
     }
-    
-    [Theory, AutoData]
-    public async Task GetAllExercises_ReturnsOkObjectResult_WithExercises()
+
+    [Fact]
+    public async Task GetAllExercises_WhenCalled_ReturnsOkObjectResultWithExercises()
     {
         // Arrange
-        var exercises = _fixture.Create<IReadOnlyCollection<ExerciseDto>>();
-        _mockTrainingService.Setup(x => x.GetAllExercisesAsync()).ReturnsAsync(exercises);
+        var exercises = _fixture.CreateMany<ExerciseDto>().ToList();
+        _trainingServiceMock.Setup(s => s.GetAllExercisesAsync()).ReturnsAsync(exercises);
 
         // Act
         var result = await _controller.GetAllExercises();
@@ -42,8 +42,25 @@ public class TrainingsControllerTests
         okResult.Value.Should().BeEquivalentTo(exercises);
     }
 
-    [Theory, AutoData]
-    public async Task GetUserTrainingByDate_ReturnsOkObjectResult_WithTraining()
+    [Fact]
+    public async Task GetAvailableUserExercises_WithValidDto_ReturnsOkObjectResultWithAvailableUserExercises()
+    {
+        // Arrange
+        var dto = _fixture.Create<AvailableUserExerciseDto>();
+        var availableExercises = _fixture.CreateMany<ExerciseDto>().ToList();
+        _trainingServiceMock.Setup(s => s.GetAvailableUserExercisesAsync(dto.TelegramId, dto.TrainingId, dto.TrainerId)).ReturnsAsync(availableExercises);
+
+        // Act
+        var result = await _controller.GetAvailableUserExercises(dto);
+
+        // Assert
+        result.Result.Should().BeOfType<OkObjectResult>();
+        var okResult = result.Result as OkObjectResult;
+        okResult.Value.Should().BeEquivalentTo(availableExercises);
+    }
+
+    [Fact]
+    public async Task GetUserTrainingByDate_WithValidDto_ReturnsOkObjectResultWithUserTraining()
     {
         // Arrange
         var telegramId = _fixture.Create<long>();
@@ -55,9 +72,8 @@ public class TrainingsControllerTests
             Date = date,
             TrainerId = trainerId
         };
-        
         var training = _fixture.Create<TrainingDto>();
-        _mockTrainingService.Setup(x => x.GetUserExercisesByDateAsync(telegramId, date, trainerId)).ReturnsAsync(training);
+        _trainingServiceMock.Setup(s => s.GetUserExercisesByDateAsync(dto.TelegramId, dto.Date, dto.TrainerId)).ReturnsAsync(training);
 
         // Act
         var result = await _controller.GetUserTrainingByDate(dto);
@@ -67,13 +83,29 @@ public class TrainingsControllerTests
         var okResult = result.Result as OkObjectResult;
         okResult.Value.Should().BeEquivalentTo(training);
     }
-    
-    [Theory, AutoData]
-    public async Task AddUserExercise_ReturnsOkResult(CreateExerciseDto dto)
+
+    [Fact]
+    public async Task GetExerciseSets_WithValidDto_ReturnsOkObjectResultWithExerciseSets()
     {
         // Arrange
-        _mockTrainingService.Setup(x => x.AddExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.TrainerId))
-            .Returns(Task.CompletedTask);
+        var dto = _fixture.Create<SetExerciseDto>();
+        var sets = _fixture.CreateMany<SetDto>().ToList();
+        _trainingServiceMock.Setup(s => s.GetExerciseSetsAsync(dto.TrainingId, dto.ExerciseId)).ReturnsAsync(sets);
+
+        // Act
+        var result = await _controller.GetExerciseSets(dto);
+
+        // Assert
+        result.Result.Should().BeOfType<OkObjectResult>();
+        var okResult = result.Result as OkObjectResult;
+        okResult.Value.Should().BeEquivalentTo(sets);
+    }
+
+    [Theory, AutoData]
+    public async Task AddUserExercise_WithValidDto_ReturnsOkResult(CreateExerciseDto dto)
+    {
+        // Arrange
+        _trainingServiceMock.Setup(s => s.AddExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.TrainerId)).Returns(Task.CompletedTask);
 
         // Act
         var result = await _controller.AddUserExercise(dto);
@@ -83,11 +115,10 @@ public class TrainingsControllerTests
     }
 
     [Theory, AutoData]
-    public async Task UpdateSetsExercise_ReturnsOkResult(UpdateExerciseDto dto)
+    public async Task UpdateSetsExercise_WithValidDto_ReturnsOkResult(UpdateExerciseDto dto)
     {
         // Arrange
-        _mockTrainingService.Setup(x => x.UpdateSetsExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.Sets, dto.TrainerId))
-            .Returns(Task.CompletedTask);
+        _trainingServiceMock.Setup(s => s.UpdateSetsExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.Sets, dto.TrainerId)).Returns(Task.CompletedTask);
 
         // Act
         var result = await _controller.UpdateSetsExercise(dto);
@@ -97,11 +128,10 @@ public class TrainingsControllerTests
     }
 
     [Theory, AutoData]
-    public async Task DeleteUserExercise_ReturnsOkResult(DeleteUserExerciseDto dto)
+    public async Task DeleteUserExercise_WithValidDto_ReturnsOkResult(DeleteUserExerciseDto dto)
     {
         // Arrange
-        _mockTrainingService.Setup(x => x.DeleteExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.TrainerId))
-            .Returns(Task.CompletedTask);
+        _trainingServiceMock.Setup(s => s.DeleteExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.TrainerId)).Returns(Task.CompletedTask);
 
         // Act
         var result = await _controller.DeleteUserExercise(dto);
@@ -111,11 +141,10 @@ public class TrainingsControllerTests
     }
 
     [Theory, AutoData]
-    public async Task DeleteSetsExercise_ReturnsOkResult(DeleteSetsExerciseDto dto)
+    public async Task DeleteSetsExercise_WithValidDto_ReturnsOkResult(DeleteSetsExerciseDto dto)
     {
         // Arrange
-        _mockTrainingService.Setup(x => x.DeleteSetsExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.SetId, dto.TrainerId))
-            .Returns(Task.CompletedTask);
+        _trainingServiceMock.Setup(s => s.DeleteSetsExerciseAsync(dto.TelegramId, dto.TrainingId, dto.ExerciseId, dto.SetsId, dto.TrainerId)).Returns(Task.CompletedTask);
 
         // Act
         var result = await _controller.DeleteSetsExercise(dto);

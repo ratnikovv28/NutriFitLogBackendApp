@@ -22,16 +22,16 @@ public class NutritionController : ControllerBase
         return Ok(await _nutritionService.GetAllDayPartsAsync());
     }
     
-    [HttpPost("GetAvailableUserFoods")]
-    public async Task<ActionResult<IReadOnlyCollection<FoodDto>>> GetAvailableUserFoods([FromBody] AvailableUserFoodDto dto)
-    {
-        return Ok(await _nutritionService.GetAvailableUserFoodAsync(dto.TelegramId, dto.MealId, dto.DayPartId, dto.TrainerId));
-    }
-    
     [HttpGet("GetAllFoods")]
     public async Task<ActionResult<IReadOnlyCollection<FoodDto>>> GetAllFoods()
     {
         return Ok(await _nutritionService.GetAllFoodsAsync());
+    }
+    
+    [HttpPost("GetAvailableUserFoods")]
+    public async Task<ActionResult<IReadOnlyCollection<FoodDto>>> GetAvailableUserFoods([FromBody] AvailableUserFoodDto dto)
+    {
+        return Ok(await _nutritionService.GetAvailableUserFoodAsync(dto.TelegramId, dto.MealId, dto.DayPartId, dto.TrainerId));
     }
     
     [HttpPost("GetUserMealByDate")]

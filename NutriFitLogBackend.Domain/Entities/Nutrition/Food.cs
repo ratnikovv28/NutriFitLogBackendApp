@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace NutriFitLogBackend.Domain.Entities.Nutrition;
 
 public class Food
@@ -7,5 +9,5 @@ public class Food
     public string Description { get; set; } = String.Empty;
     public string PictureUrl { get; set; } = String.Empty;
     public UnitOfMeasure Unit { get; set; }
-    public List<MealFood> Meals { get; set; } = new();
+    public List<MealFood> Meals { get; [ExcludeFromCodeCoverage] set; } = new();
 }

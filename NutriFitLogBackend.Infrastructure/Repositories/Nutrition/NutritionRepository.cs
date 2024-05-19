@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using NutriFitLogBackend.Domain.Entities.Nutrition;
 using NutriFitLogBackend.Domain.Repositories.Nutrition;
 using NutriFitLogBackend.Infrastructure.Database;

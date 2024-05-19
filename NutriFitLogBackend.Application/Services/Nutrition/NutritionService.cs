@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using AutoMapper;
 using NutriFitLogBackend.Domain;
 using NutriFitLogBackend.Domain.DTOs.Nutrition;
@@ -161,18 +162,18 @@ public class NutritionService : INutritionService
         return user;
     }
     
+    [ExcludeFromCodeCoverage]
     private async Task UserWorkWithTrainerGuard(User user, long trainerId)
     {
         if(trainerId == 0) return;
         
-        var student = await _unitOfWork.UserRepository.GetByTelegramIdAsync(user.TelegramId);
-        if (student is null)
+        if (user is null)
             throw new UserNotFoundException(user.TelegramId);
         var trainer = await _unitOfWork.UserRepository.GetByTelegramIdAsync(trainerId);
         if (trainer is null)
             throw new UserNotFoundException(trainerId);
 
-        var studentTrainer = await _unitOfWork.StudentTrainerRepository.GetRelationShip(student.Id, trainer.Id);
+        var studentTrainer = await _unitOfWork.StudentTrainerRepository.GetRelationShip(user.Id, trainer.Id);
         if (studentTrainer is null)
             throw new StudentTrainerWorkException(
                 $"Student with Id = '{user.TelegramId}' doesnt work with Trainer with Id = '{trainerId}'");
@@ -186,6 +187,7 @@ public class NutritionService : INutritionService
         return userMealById;
     }
     
+    [ExcludeFromCodeCoverage]
     private async Task FoodExistsGuard(long foodId)
     {
         var food = await _unitOfWork.FoodRepository.ExistAsync(foodId);

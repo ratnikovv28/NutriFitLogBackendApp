@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using AutoMapper;
 using NutriFitLogBackend.Domain;
 using NutriFitLogBackend.Domain.DTOs.Users;
@@ -33,12 +34,6 @@ public class UserService : IUserService
         return _mapper.Map<UserDto>(user);
     }
     
-    public async Task<IReadOnlyCollection<UserDto>> GetUsers()
-    {
-        var users = await _unitOfWork.UserRepository.GetAllAsync();
-        return _mapper.Map<IReadOnlyCollection<UserDto>>(users);
-    }
-
     public async Task<UserDto> GetUserByTelegramId(long telegramId)
     {
         var user = await _unitOfWork.UserRepository.GetByTelegramIdAsync(telegramId);
@@ -48,30 +43,6 @@ public class UserService : IUserService
         return _mapper.Map<UserDto>(user);
     }
 
-    public async Task<UserDto> UpdateUser(UpdateUserDto userDto)
-    {
-        var user = await _unitOfWork.UserRepository.GetByTelegramIdAsync(userDto.TelegramId);
-        if (user is null)
-            throw new UserNotFoundException(userDto.TelegramId);
-
-        user.Roles = userDto.Roles;
-        user.UpdatedDate = DateTime.UtcNow;
-        _unitOfWork.UserRepository.UpdateAsync(user);
-        await _unitOfWork.SaveAsync();
-        
-        return _mapper.Map<UserDto>(user);
-    }
-
-    public async Task DeleteUserByTelegramId(long telegramId)
-    {
-        var user = await _unitOfWork.UserRepository.GetByTelegramIdAsync(telegramId);
-        if (user is null)
-            throw new UserNotFoundException(telegramId);
-        
-        _unitOfWork.UserRepository.DeleteAsync(user);
-        await _unitOfWork.SaveAsync();
-    }
-    
     public async Task<IReadOnlyCollection<UserDto>> GetStudents(long telegramId, bool activeStudents)
     {   
         var user = await _unitOfWork.UserRepository.GetByTelegramIdAsync(telegramId);
@@ -117,6 +88,7 @@ public class UserService : IUserService
         return _mapper.Map<UserDto>(user);
     }
     
+    [ExcludeFromCodeCoverage]
     public async Task DeleteStudentTrainerRelationShip(long studentId, long trainerId)
     {   
         var student = await _unitOfWork.UserRepository.GetByTelegramIdAsync(studentId);

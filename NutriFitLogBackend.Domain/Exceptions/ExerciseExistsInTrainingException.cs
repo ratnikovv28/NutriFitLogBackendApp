@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using NutriFitLogBackend.Domain.Common;
 
 namespace NutriFitLogBackend.Domain.Exceptions;
 
+[ExcludeFromCodeCoverage]
 public class ExerciseExistsInTrainingException : BaseException
 {
     public ExerciseExistsInTrainingException() : base(HttpStatusCode.Conflict)

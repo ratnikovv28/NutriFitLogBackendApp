@@ -35,11 +35,6 @@ public class SetRepository : ISetRepository
                         x.ExerciseId == exerciseId && x.Id == setId);
     }
     
-    public async Task<IReadOnlyCollection<Set>> GetAllAsync()
-    {
-        return await _dbContext.Sets.ToListAsync();
-    }
-
     public async Task<Set> AddAsync(Set set)
     {
         await _dbContext.Sets.AddAsync(set);
@@ -54,10 +49,5 @@ public class SetRepository : ISetRepository
     public void Delete(Set set)
     {
         _dbContext.Sets.Remove(set);
-    }
-    
-    public void DeleteRangeAsync(IReadOnlyCollection<Set> sets)
-    {
-        _dbContext.Sets.RemoveRange(sets);
     }
 }

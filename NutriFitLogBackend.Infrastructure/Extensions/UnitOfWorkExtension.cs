@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using NutriFitLogBackend.Domain;
 using NutriFitLogBackend.Infrastructure.Database;
@@ -7,6 +8,7 @@ using NutriFitLogBackend.Infrastructure.Repositories.Users;
 
 namespace NutriFitLogBackend.Infrastructure.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class UnitOfWorkExtension
 {
     public static IServiceCollection SetupUnitOfWork(this IServiceCollection serviceCollection)

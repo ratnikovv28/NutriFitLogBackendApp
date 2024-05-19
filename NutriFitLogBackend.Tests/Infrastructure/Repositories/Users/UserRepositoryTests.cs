@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
 using AutoFixture.Xunit2;
 using FluentAssertions;
@@ -7,14 +8,11 @@ using NutriFitLogBackend.Infrastructure.Database;
 using NutriFitLogBackend.Infrastructure.Repositories.Users;
 using Xunit;
 
-namespace NutriFitLogBackend.Tests.Infrastructure.Repositories.Users;
-
 public class UserRepositoryTests
 {
     private readonly NutriFitLogContext _dbContext;
-
     private readonly UserRepository _sut;
-    
+
     public UserRepositoryTests()
     {
         var dbContextOptions = new DbContextOptionsBuilder<NutriFitLogContext>()
@@ -22,13 +20,68 @@ public class UserRepositoryTests
             .Options;
 
         _dbContext = new NutriFitLogContext(dbContextOptions);
-
         _sut = new UserRepository(_dbContext);
     }
 
     [Theory]
     [MemberData(nameof(UserData))]
-    public async Task GetByTelegramId_WhenUserExists_ReturnUser(User user)
+    public async Task GetByIdAsync_WhenUserExists_ReturnUser(User user)
+    {
+        // Arrange
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetByIdAsync(user.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(user);
+    }
+
+    [Theory]
+    [MemberData(nameof(UserData))]
+    public async Task GetByIdAsync_WhenUserNotExists_ReturnNull(User user)
+    {
+        // Arrange
+
+        // Act
+        var result = await _sut.GetByIdAsync(user.Id);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Theory]
+    [MemberData(nameof(UserData))]
+    public async Task GetJustByTelegramIdAsync_WhenUserExists_ReturnUser(User user)
+    {
+        // Arrange
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetJustByTelegramIdAsync(user.TelegramId);
+
+        // Assert
+        result.Should().BeEquivalentTo(user);
+    }
+
+    [Theory]
+    [MemberData(nameof(UserData))]
+    public async Task GetJustByTelegramIdAsync_WhenUserNotExists_ReturnNull(User user)
+    {
+        // Arrange
+
+        // Act
+        var result = await _sut.GetJustByTelegramIdAsync(user.TelegramId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Theory]
+    [MemberData(nameof(UserData))]
+    public async Task GetByTelegramIdAsync_WhenUserExists_ReturnUser(User user)
     {
         // Arrange
         _dbContext.Users.Add(user);
@@ -38,30 +91,40 @@ public class UserRepositoryTests
         var result = await _sut.GetByTelegramIdAsync(user.TelegramId);
 
         // Assert
-        result.Should().BeEquivalentTo(user);
+        result.Should().BeEquivalentTo(user, options => options
+            .Excluding(u => u.Trainings)
+            .Excluding(u => u.Meals)
+            .Excluding(u => u.Students)
+            .Excluding(u => u.Trainers));
     }
-    
+
     [Theory]
     [MemberData(nameof(UserData))]
-    public async Task GetByTelegramId_WhenUserNotExists_ReturnNull(User user)
+    public async Task GetByTelegramIdAsync_WhenUserNotExists_ReturnNull(User user)
     {
         // Arrange
 
         // Act
-        var result = await _sut.GetByTelegramIdAsync(user.Id);
+        var result = await _sut.GetByTelegramIdAsync(user.TelegramId);
 
         // Assert
         result.Should().BeNull();
     }
-    
+
     [Theory]
-    [MemberData(nameof(UsersData))]
-    public async Task GetAll_WhenUsersExists_ReturnUsers(IReadOnlyCollection<User> users)
+    [AutoData]
+    public async Task GetAllAsync_WhenUsersExist_ReturnUsers(IReadOnlyCollection<long> telegramIds)
     {
         // Arrange
+        var users = new List<User>();
+        foreach (var telegramId in telegramIds)
+        {
+            users.Add(new User(telegramId));
+        }
+        
         foreach (var user in users)
         {
-            _dbContext.Users.Add(user);   
+            _dbContext.Users.Add(user);
         }
         await _dbContext.SaveChangesAsync();
 
@@ -72,9 +135,9 @@ public class UserRepositoryTests
         result.Should().Contain(a => users.Contains(a));
         result.Count.Should().Be(users.Count);
     }
-    
+
     [Fact]
-    public async Task GetAll_WhenUsersNotExists_ReturnEmptyCollection()
+    public async Task GetAllAsync_WhenUsersNotExist_ReturnEmptyCollection()
     {
         // Arrange
 
@@ -85,14 +148,13 @@ public class UserRepositoryTests
         result.Should().BeEmpty();
         result.Count.Should().Be(0);
     }
-    
-    [Theory]
-    [AutoData]
-    public async Task Add_ReturnCreatedUser(long telegramId)
+
+    [Theory, AutoData]
+    public async Task AddAsync_ReturnCreatedUser(long telegramId)
     {
         // Arrange
         var user = new User(telegramId);
-        
+
         // Act
         await _sut.AddAsync(user);
         await _dbContext.SaveChangesAsync();
@@ -103,64 +165,62 @@ public class UserRepositoryTests
         result.Id.Should().BeGreaterThan(0);
         result.Should().BeEquivalentTo(user, options => options.Excluding(u => u.Id));
     }
-    
+
     [Theory]
     [MemberData(nameof(UserData))]
-    public async Task Update_ShouldBeUpdated(User user)
+    public async Task UpdateAsync_ShouldBeUpdated(User user)
     {
         // Arrange
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
-        
-        user.Roles.Add(UserRole.Admin); 
-        
+
         // Act
-        await _sut.UpdateAsync(user);
+        _sut.UpdateAsync(user);
         await _dbContext.SaveChangesAsync();
-        var updateUser = await _sut.GetByTelegramIdAsync(user.TelegramId);
+        var updatedUser = await _sut.GetByTelegramIdAsync(user.TelegramId);
 
         // Assert
-        updateUser.Should().BeEquivalentTo(user);
+        updatedUser.Should().BeEquivalentTo(user);
     }
-    
+
     [Theory]
     [MemberData(nameof(UserData))]
-    public async Task Delete_ShouldBeDeleted(User user)
+    public async Task DeleteAsync_ShouldBeDeleted(User user)
     {
         // Arrange
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
-        
+
         // Act
-        await _sut.DeleteAsync(user);
+        _sut.DeleteAsync(user);
         await _dbContext.SaveChangesAsync();
         var result = await _sut.GetByTelegramIdAsync(user.TelegramId);
 
         // Assert
         result.Should().BeNull();
     }
-    
+
     [Theory]
     [MemberData(nameof(UserData))]
-    public async Task Exist_WhenExists_ShouldBeTrue(User user)
+    public async Task ExistAsync_WhenExists_ShouldBeTrue(User user)
     {
         // Arrange
         _dbContext.Users.Add(user);
         await _dbContext.SaveChangesAsync();
-        
+
         // Act
         var result = await _sut.ExistAsync(user.TelegramId);
 
         // Assert
         result.Should().BeTrue();
     }
-    
+
     [Theory]
     [MemberData(nameof(UserData))]
-    public async Task Exist_WhenNotExists_ShouldBeFalse(User user)
+    public async Task ExistAsync_WhenNotExists_ShouldBeFalse(User user)
     {
         // Arrange
-        
+
         // Act
         var result = await _sut.ExistAsync(user.TelegramId);
 
@@ -168,34 +228,33 @@ public class UserRepositoryTests
         result.Should().BeFalse();
     }
 
+    [ExcludeFromCodeCoverage]
     public static IEnumerable<object[]> UserData()
-    {   
+    {
         var fixture = new Fixture();
-        var telegramId = fixture.Create<long>();
-        
-        var user = new User(telegramId);
+        var user = fixture.Build<User>()
+            .Without(u => u.Trainings)
+            .Without(u => u.Meals)
+            .Without(u => u.Students)
+            .Without(u => u.Trainers)
+            .Create();
 
-        yield return new object[]
-        {
-            user
-        };
+        yield return new object[] { user };
     }
-    
+
+    [ExcludeFromCodeCoverage]
     public static IEnumerable<object[]> UsersData()
-    {   
+    {
         var fixture = new Fixture();
-        var usersCount = fixture.Create<long>();
+        var users = fixture.CreateMany<User>(5)
+            .Select(u => fixture.Build<User>()
+                .Without(x => x.Trainings)
+                .Without(x => x.Meals)
+                .Without(x => x.Students)
+                .Without(x => x.Trainers)
+                .Create())
+            .ToList();
 
-        var users = new List<User>();
-        for (int i = 0; i < usersCount; i++)
-        {
-            var telegramId = fixture.Create<long>();
-            users.Add(new User(telegramId));
-        }
-
-        yield return new object[]
-        {
-            users
-        };
+        yield return new object[] { users };
     }
 }

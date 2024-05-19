@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace NutriFitLogBackend.Domain.Entities.Trainings;
 
 public class Exercise
@@ -9,7 +11,7 @@ public class Exercise
     public DateTime CreatedDate { get; set; }
     public ExerciseType Type { get; set; }
     
-    public List<TrainingExercise> Trainings { get; set; } = new();
+    public List<TrainingExercise> Trainings { get; [ExcludeFromCodeCoverage] set; } = new();
 
     public Exercise(
         string name,

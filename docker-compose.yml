@@ -1,0 +1,30 @@
+﻿services:
+  nutrifitlogbackend.api:
+    image: nutrifitlogbackend.api
+    build:
+      context: .
+      dockerfile: NutriFitLogBackend.Api/Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=postgresql;Port=5432;Database=nutri-fit-log;User Id=postgres;Password=admin;
+    depends_on:
+      - "postgresql"
+  
+  postgresql:
+    image: postgres:latest
+    restart: always
+    container_name: nutri-fit-log-postgresql
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=nutri-fit-log
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+volumes:
+  dbdata:

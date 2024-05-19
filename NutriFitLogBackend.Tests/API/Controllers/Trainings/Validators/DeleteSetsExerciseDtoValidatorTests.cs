@@ -19,7 +19,6 @@ public class DeleteSetsExerciseDtoValidatorTests
             TrainingId = trainingId,
             ExerciseId = exerciseId,
             TrainerId = trainerId,
-            SetId = setId
         };
 
         var result = _validator.Validate(dto);
@@ -35,7 +34,6 @@ public class DeleteSetsExerciseDtoValidatorTests
             TrainingId = trainingId,
             ExerciseId = exerciseId,
             TrainerId = trainerId,
-            SetId = setId
         };
 
         var result = _validator.Validate(dto);
@@ -52,7 +50,6 @@ public class DeleteSetsExerciseDtoValidatorTests
             TrainingId = -trainingId,
             ExerciseId = exerciseId,
             TrainerId = trainerId,
-            SetId = setId
         };
 
         var result = _validator.Validate(dto);
@@ -69,7 +66,6 @@ public class DeleteSetsExerciseDtoValidatorTests
             TrainingId = trainingId,
             ExerciseId = -exerciseId,
             TrainerId = trainerId,
-            SetId = setId
         };
 
         var result = _validator.Validate(dto);
@@ -86,28 +82,10 @@ public class DeleteSetsExerciseDtoValidatorTests
             TrainingId = trainingId,
             ExerciseId = exerciseId,
             TrainerId = -trainerId,
-            SetId = setId
         };
 
         var result = _validator.Validate(dto);
         result.IsValid.Should().BeFalse();
         result.Errors.Should().ContainSingle(e => e.ErrorMessage.Contains("Trainer ID must not be negative"));
-    }
-
-    [Theory, AutoData]
-    public void Validate_WhenSetIdIsNegative_ShouldHaveValidationError(long telegramId, long trainingId, long exerciseId, long trainerId, long setId)
-    {
-        var dto = new DeleteSetsExerciseDto
-        {
-            TelegramId = telegramId,
-            TrainingId = trainingId,
-            ExerciseId = exerciseId,
-            TrainerId = trainerId,
-            SetId = -setId
-        };
-
-        var result = _validator.Validate(dto);
-        result.IsValid.Should().BeFalse();
-        result.Errors.Should().ContainSingle(e => e.ErrorMessage.Contains("Set ID must not be negative"));
     }
 }

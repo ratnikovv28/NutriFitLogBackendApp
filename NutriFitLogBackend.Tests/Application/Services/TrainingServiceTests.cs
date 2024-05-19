@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
-using AutoFixture.Xunit2;
+using AutoFixture.AutoMoq;
 using AutoMapper;
 using FluentAssertions;
 using Moq;
+using AutoFixture.Xunit2;
 using NutriFitLogBackend.Application.Services.Trainings;
 using NutriFitLogBackend.Domain;
 using NutriFitLogBackend.Domain.DTOs.Trainings;
@@ -13,297 +15,725 @@ using NutriFitLogBackend.Domain.Extensions;
 using NutriFitLogBackend.Infrastructure.Mapper;
 using Xunit;
 
-namespace NutriFitLogBackend.Tests.Application.Services;
-
 public class TrainingServiceTests
 {
-    private readonly Mock<IUnitOfWork> _uowMock = new();
+    private readonly Mock<IUnitOfWork> _uowMock;
     private readonly IMapper _mapper;
-
     private readonly TrainingService _sut;
-    
+    private readonly IFixture _fixture;
+
     public TrainingServiceTests()
     {
+        _uowMock = new Mock<IUnitOfWork>();
         var config = new MapperConfiguration(cfg => cfg.AddProfile(new MappingProfile()));
         _mapper = new Mapper(config);
-        
         _sut = new TrainingService(_uowMock.Object, _mapper);
+        _fixture = new Fixture().Customize(new AutoMoqCustomization { ConfigureMembers = true });
     }
-    
+
     [Theory]
-    [MemberData(nameof(ExercisesData))]
-    public async Task GetAllExercises_ReturnsAllExercises(IReadOnlyCollection<Exercise> exercises, IReadOnlyCollection<ExerciseDto> expected)
+    [MemberData(nameof(ExerciseData))]
+    public async Task GetAllExercisesAsync_ReturnsAllExercises(Exercise exercise)
     {
         // Arrange
-        SetupExercisesRepository(exercises);
+        var exercises = new List<Exercise>();
+        exercises.Add(exercise);
+        _uowMock.Setup(u => u.ExercisesRepository.GetAllAsync()).ReturnsAsync(exercises);
 
         // Act
         var result = await _sut.GetAllExercisesAsync();
 
         // Assert
-        result.Should().BeEquivalentTo(expected);
+        result.Should().BeEquivalentTo(_mapper.Map<IReadOnlyCollection<ExerciseDto>>(exercises));
     }
-        
+
     [Theory]
-    [MemberData(nameof(TrainingData))]
-    public async Task GetUserExercisesByDate_WhenUserNotExists_ShouldThrows(IReadOnlyCollection<Training> trainings, User user, DateOnly date, User trainer)
+    [MemberData(nameof(SetData))]
+    public async Task GetExerciseSetsAsync_ReturnsExerciseSets(Set set)
     {
         // Arrange
-        SetupUserRepository(user.TelegramId);    
-        
+        var sets = new List<Set>();
+        sets.Add(set);
+        var trainingId = _fixture.Create<long>();
+        var exerciseId = _fixture.Create<long>();
+        _uowMock.Setup(u => u.SetRepository.GetByTrainingAndExerciseIdAsync(trainingId, exerciseId)).ReturnsAsync(sets);
+
         // Act
-        var act = () => _sut.GetUserExercisesByDateAsync(user.TelegramId, date);
+        var result = await _sut.GetExerciseSetsAsync(trainingId, exerciseId);
+
+        // Assert
+        result.Should().BeEquivalentTo(_mapper.Map<IReadOnlyCollection<SetDto>>(sets));
+    }
+
+    [Theory, AutoData]
+    public async Task GetAvailableUserExercisesAsync_WhenUserDoesNotExist_ThrowsUserNotFoundException(long telegramId, long trainingId, long trainerId)
+    {
+        // Arrange
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync((User)null);
+
+        // Act
+        Func<Task> act = async () => await _sut.GetAvailableUserExercisesAsync(telegramId, trainingId, 0);
 
         // Assert
         await act.Should().ThrowAsync<UserNotFoundException>();
     }
-    
-    [Theory]
-    [MemberData(nameof(TrainingData))]
-    public async Task GetUserExercisesByDate_WhenUserNotWorkWithTrainer_ShouldThrows(IReadOnlyCollection<Training> trainings, User user, DateOnly date, User trainer)
-    {
-        // Arrange
-        SetupUserRepository(user.TelegramId, user);     
-        
-        // Act
-        var act = () => _sut.GetUserExercisesByDateAsync(user.TelegramId, date, trainer.TelegramId + 1);
 
-        // Assert
-        await act.Should().ThrowAsync<NoAccessUserDataException>();
-    }
-    
-    [Theory]
-    [MemberData(nameof(TrainingData))]
-    public async Task GetUserExercisesByDate_WhenUserExistsAndHasNoData_ReturnsCreatedEmptyExercises(IReadOnlyCollection<Training> trainings, User user, DateOnly date, User trainer)
+    [Theory, AutoData]
+    public async Task GetAvailableUserExercisesAsync_WhenUserDoesNotWorkWithTrainer_ThrowsStudentTrainerWorkException(long telegramId, long trainingId, long trainerId)
     {
         // Arrange
-        var training = new Training
+        var user = new User(telegramId)
         {
-            CreatedDate = date.ToDateTimeUtc(),
-            Exercises = new List<TrainingExercise>(),
-            User = user
+            Id = telegramId + 1
         };
-        var createdTraining = new Training
+        var trainer = new User(trainerId)
         {
-            Id = trainings.Last().Id + 1,
-            CreatedDate = date.ToDateTimeUtc(),
-            Exercises = new List<TrainingExercise>(),
-            User = user
+            Id = trainerId + 1
         };
-        SetupUserRepository(user.TelegramId, user);  
-        /*SetupTrainingGetRepository(user.TelegramId, trainings);*/
-        SetupTrainingAddRepository(training, createdTraining);
-          
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(user.TelegramId)).ReturnsAsync(user);
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(trainerId)).ReturnsAsync(trainer);
+        _uowMock.Setup(u => u.StudentTrainerRepository.GetRelationShip(telegramId + 1,trainerId + 1)).ReturnsAsync((StudentTrainer)null);
+
         // Act
-        var result = await _sut.GetUserExercisesByDateAsync(user.TelegramId, date.AddDays(-1));
+        Func<Task> act = async () => await _sut.GetAvailableUserExercisesAsync(user.TelegramId, trainingId, trainerId);
 
         // Assert
-        result.Should().NotBeNull();
+        await act.Should().ThrowAsync<StudentTrainerWorkException>();
     }
-    
+
     [Theory]
-    [MemberData(nameof(TrainingData))]
-    public async Task GetUserExercisesByDate_WhenUserExistsAndHasData_ReturnsAllExercises(IReadOnlyCollection<Training> trainings, User user, DateOnly date, User trainer)
+    [MemberData(nameof(AvailableExerciseData))]
+    public async Task GetAvailableUserExercisesAsync_ReturnsAvailableExercises(User user, Training training, List<Exercise> exercises)
     {
         // Arrange
-        user.Trainings.AddRange(trainings);
-        SetupUserRepository(user.TelegramId, user);   
-        
+        var trainingId = training.Id;
+        training.Exercises = exercises.Select(e => new TrainingExercise { ExerciseId = e.Id + 1 }).ToList();
+        user.Trainings.Add(training);
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(user.TelegramId)).ReturnsAsync(user);
+        _uowMock.Setup(u => u.ExercisesRepository.GetAllAsync()).ReturnsAsync(exercises);
+
         // Act
-        var result = await _sut.GetUserExercisesByDateAsync(user.TelegramId, date);
+        var result = await _sut.GetAvailableUserExercisesAsync(user.TelegramId, trainingId);
 
         // Assert
-        result.Should().NotBeNull();
-        result.CreatedDate.ToDateOnly().Should().Be(date);
+        result.Should().BeEquivalentTo(_mapper.Map<IReadOnlyCollection<ExerciseDto>>(exercises));
     }
-    
-    [Theory]
-    [AutoData]
-    public async Task CreateExercise_WhenUserNotExists_ShouldThrows(User user, DateOnly date)
+
+    [Theory, AutoData]
+    public async Task GetUserExercisesByDateAsync_WhenUserDoesNotExist_ThrowsUserNotFoundException(long telegramId, DateTime date, long trainerId)
     {
         // Arrange
-        SetupUserRepository(user.TelegramId);    
-        
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync((User)null);
+
         // Act
-        var act = () => _sut.GetUserExercisesByDateAsync(user.TelegramId, date);
+        Func<Task> act = async () => await _sut.GetUserExercisesByDateAsync(telegramId, date.ToDateOnly(), trainerId);
 
         // Assert
         await act.Should().ThrowAsync<UserNotFoundException>();
     }
-    
-    [Theory]
-    [AutoData]
-    public async Task DeleteExercise_WhenUserNotExists_ShouldThrows(User user, DateOnly date)
+
+    [Theory, AutoData]
+    public async Task GetUserExercisesByDateAsync_ReturnsTraining(long telegramId, DateTime date)
     {
         // Arrange
-        SetupUserRepository(user.TelegramId);    
-        
+        var user = new User(telegramId);
+        var training = new Training { CreatedDate = date };
+        user.Trainings.Add(training);
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(user.TelegramId)).ReturnsAsync(user);
+
         // Act
-        var act = () => _sut.GetUserExercisesByDateAsync(user.TelegramId, date);
+        var result = await _sut.GetUserExercisesByDateAsync(user.TelegramId, date.ToDateOnly());
+
+        // Assert
+        result.Should().BeEquivalentTo(_mapper.Map<TrainingDto>(training));
+    }
+    
+    [Theory, AutoData]
+    public async Task GetUserExercisesByDateAsync_WhenTrainingDoesNotExist_ReturnsTraining(long telegramId, DateTime date)
+    {
+        // Arrange
+        var user = new User(telegramId);
+        var training = new Training { CreatedDate = date.AddDays(1) };
+        var expectedTraining = new Training { CreatedDate = date };
+        user.Trainings.Add(training);
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(user.TelegramId)).ReturnsAsync(user);
+        _uowMock.Setup(u => u.TrainingRepository.AddAsync(It.IsAny<Training>())).ReturnsAsync(expectedTraining);
+
+        // Act
+        var result = await _sut.GetUserExercisesByDateAsync(user.TelegramId, date.ToDateOnly());
+
+        // Assert
+        result.Should().BeEquivalentTo(_mapper.Map<TrainingDto>(expectedTraining));
+    }
+
+    [Theory, AutoData]
+    public async Task AddExerciseAsync_WhenUserDoesNotExist_ThrowsUserNotFoundException(long telegramId, long trainingId, long exerciseId, long trainerId)
+    {
+        // Arrange
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync((User)null);
+
+        // Act
+        Func<Task> act = async () => await _sut.AddExerciseAsync(telegramId, trainingId, exerciseId, trainerId);
 
         // Assert
         await act.Should().ThrowAsync<UserNotFoundException>();
     }
+
+    [Theory, AutoData]
+    public async Task AddExerciseAsync_WhenExerciseAlreadyExist_AddsExercise(long telegramId, long trainingId, long exerciseId)
+    {
+        // Arrange
+        var user = new User(telegramId);
+        user.Trainings.Add(new Training()
+        {
+            Id = trainingId,
+            Exercises = new List<TrainingExercise>()
+            {
+                new TrainingExercise()
+                {
+                    ExerciseId = exerciseId,
+                    TrainingId = trainingId
+                }
+            }
+        });
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync(user);
+        _uowMock.Setup(u => u.ExercisesRepository.ExistAsync(exerciseId)).ReturnsAsync(true);
+        _uowMock.Setup(u => u.TrainingExerciseRepository.AddAsync(It.IsAny<TrainingExercise>())).ReturnsAsync(new TrainingExercise());
+
+        // Act
+        var act = () => _sut.AddExerciseAsync(telegramId, trainingId, exerciseId);
+
+        // Assert
+        await act.Should().ThrowAsync<ExerciseExistsInTrainingException>();
+    }
     
+    [Theory, AutoData]
+    public async Task AddExerciseAsync_WhenExerciseNotFound_ShouldThrows(long telegramId, long trainingId, long exerciseId)
+    {
+        // Arrange
+        var user = new User(telegramId);
+        user.Trainings.Add(new Training()
+        {
+            Id = trainingId,
+            Exercises = new List<TrainingExercise>()
+            {
+                new TrainingExercise()
+                {
+                    ExerciseId = exerciseId,
+                    TrainingId = trainingId
+                }
+            }
+        });
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync(user);
+        _uowMock.Setup(u => u.ExercisesRepository.ExistAsync(exerciseId)).ReturnsAsync(false);
+        _uowMock.Setup(u => u.TrainingExerciseRepository.AddAsync(It.IsAny<TrainingExercise>())).ReturnsAsync(new TrainingExercise());
+
+        // Act
+        var act = () => _sut.AddExerciseAsync(telegramId, trainingId, exerciseId);
+
+        // Assert
+        await act.Should().ThrowAsync<ExerciseNotFoundException>();
+    }
+    
+    [Theory, AutoData]
+    public async Task AddExerciseAsync_AddsExercise(long telegramId, long trainingId, long exerciseId)
+    {
+        // Arrange
+        var user = new User(telegramId);
+        user.Trainings.Add(new Training()
+        {
+            Id = trainingId
+        });
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync(user);
+        _uowMock.Setup(u => u.ExercisesRepository.ExistAsync(exerciseId)).ReturnsAsync(true);
+        _uowMock.Setup(u => u.TrainingExerciseRepository.AddAsync(It.IsAny<TrainingExercise>())).ReturnsAsync(new TrainingExercise());
+
+        // Act
+        await _sut.AddExerciseAsync(telegramId, trainingId, exerciseId);
+
+        // Assert
+        _uowMock.Verify(u => u.TrainingExerciseRepository.AddAsync(It.Is<TrainingExercise>(te => te.ExerciseId == exerciseId && te.TrainingId == trainingId)), Times.Once);
+        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+    }
+
+    [Theory, AutoData]
+    public async Task DeleteExerciseAsync_WhenUserDoesNotExist_ThrowsUserNotFoundException(long telegramId, long trainingId, long exerciseId, long trainerId)
+    {
+        // Arrange
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync((User)null);
+
+        // Act
+        Func<Task> act = async () => await _sut.DeleteExerciseAsync(telegramId, trainingId, exerciseId, trainerId);
+
+        // Assert
+        await act.Should().ThrowAsync<UserNotFoundException>();
+    }
+
     [Theory]
     [MemberData(nameof(DeleteExerciseData))]
-    public async Task DeleteExerciseAsync_ExerciseExists_DeletesSuccessfully(User user, Training training, long exerciseId)
+    public async Task DeleteExerciseAsync_DeletesExercise(long telegramId, long trainingId, long exerciseId, long trainerId, User user, TrainingExercise trainingExercise)
     {
         // Arrange
-        SetupUserRepository(user.TelegramId, user);
-        SetupTrainingGetRepository(user.TelegramId, new List<Training> { training });
+        var trainer = new User(trainerId)
+        {
+            Id = trainerId + 1
+        };
+        user.Id = telegramId + 1;
+        var studentTrainer = new StudentTrainer()
+        {
+            Id = telegramId + 1,
+            IsWorking = true,
+            StudentId = telegramId,
+            Student = user,
+            TrainerId = trainerId,
+            Trainer = trainer
+        };
+        user.Trainers.Add(studentTrainer);
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync(user);
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(trainerId)).ReturnsAsync(trainer);
+        _uowMock.Setup(u => u.StudentTrainerRepository.GetRelationShip(telegramId + 1,trainerId + 1)).ReturnsAsync(studentTrainer);
+        _uowMock.Setup(u => u.TrainingExerciseRepository.GetByTrainingAndExercideId(trainingId, exerciseId)).ReturnsAsync(trainingExercise);
 
         // Act
-        await _sut.DeleteExerciseAsync(user.TelegramId, training.Id, exerciseId);
+        await _sut.DeleteExerciseAsync(telegramId, trainingId, exerciseId, trainerId);
 
         // Assert
-        _uowMock.Verify(u => u.TrainingExerciseRepository.Delete(It.Is<TrainingExercise>(te => te.ExerciseId == exerciseId)), Times.Once);
+        _uowMock.Verify(u => u.TrainingExerciseRepository.Delete(It.Is<TrainingExercise>(te => te.Id == trainingExercise.Id)), Times.Once);
+        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+    }
+
+    [Theory, AutoData]
+    public async Task UpdateSetsExerciseAsync_WhenUserDoesNotExist_ThrowsUserNotFoundException(long telegramId, long trainingId, long exerciseId, IReadOnlyCollection<SetDto> setsDto, long trainerId)
+    {
+        // Arrange
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync((User)null);
+
+        // Act
+        Func<Task> act = async () => await _sut.UpdateSetsExerciseAsync(telegramId, trainingId, exerciseId, setsDto, trainerId);
+
+        // Assert
+        await act.Should().ThrowAsync<UserNotFoundException>();
+    }
+
+    [Theory]
+    [MemberData(nameof(UpdateSetsData))]
+    public async Task UpdateSetsExerciseAsync_UpdatesSets(long telegramId, long trainingId, long exerciseId, List<SetDto> setsDto, TrainingExercise trainingExercise)
+    {
+        // Arrange
+        var user = new User(telegramId);
+        user.Trainings.Add(new Training()
+        {
+            Id = trainingId,
+            Exercises = new List<TrainingExercise>()
+            {
+                new TrainingExercise()
+                {
+                    ExerciseId = exerciseId,
+                    TrainingId = trainingId
+                }
+            }
+        });
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync(user);
+        _uowMock.Setup(u => u.TrainingExerciseRepository.GetByTrainingAndExercideId(trainingId, exerciseId)).ReturnsAsync(trainingExercise);
+        _uowMock.Setup(u => u.SetRepository.Update(It.IsAny<Set>()));
+
+        // Act
+        await _sut.UpdateSetsExerciseAsync(telegramId, trainingId, exerciseId, setsDto);
+
+        // Assert
+        foreach (var setDto in setsDto)
+        {
+            _uowMock.Verify(u => u.SetRepository.Update(It.IsAny<Set>()), Times.Exactly(setsDto.Count));
+        }
         _uowMock.Verify(u => u.SaveAsync(), Times.Once);
     }
     
+    [Theory]
+    [MemberData(nameof(UpdateSetsZeroIdData))]
+    public async Task UpdateSetsExerciseAsync_WhenSetIdIsZero_UpdatesSets(long telegramId, long trainingId, long exerciseId, List<SetDto> setsDto, TrainingExercise trainingExercise)
+    {
+        // Arrange
+        var user = new User(telegramId);
+        user.Trainings.Add(new Training()
+        {
+            Id = trainingId,
+            Exercises = new List<TrainingExercise>()
+            {
+                new TrainingExercise()
+                {
+                    ExerciseId = exerciseId,
+                    TrainingId = trainingId
+                }
+            }
+        });
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync(user);
+        _uowMock.Setup(u => u.TrainingExerciseRepository.GetByTrainingAndExercideId(trainingId, exerciseId)).ReturnsAsync(trainingExercise);
+        _uowMock.Setup(u => u.SetRepository.AddAsync(It.IsAny<Set>())).ReturnsAsync((Set)null);
+
+        // Act
+        await _sut.UpdateSetsExerciseAsync(telegramId, trainingId, exerciseId, setsDto);
+
+        // Assert
+        foreach (var setDto in setsDto)
+        {
+            _uowMock.Verify(u => u.SetRepository.AddAsync(It.IsAny<Set>()), Times.Exactly(setsDto.Count));
+        }
+        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+    }
+
+    [Theory, AutoData]
+    public async Task DeleteSetsExerciseAsync_WhenUserDoesNotExist_ThrowsUserNotFoundException(long telegramId, long trainingId, long exerciseId, IReadOnlyCollection<long> setsId, long trainerId)
+    {
+        // Arrange
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync((User)null);
+
+        // Act
+        Func<Task> act = async () => await _sut.DeleteSetsExerciseAsync(telegramId, trainingId, exerciseId, setsId, trainerId);
+
+        // Assert
+        await act.Should().ThrowAsync<UserNotFoundException>();
+    }
+
+    [Theory]
+    [MemberData(nameof(DeleteSetsData))]
+    public async Task DeleteSetsExerciseAsync_DeletesSets(long telegramId, long trainingId, long exerciseId, List<long> setsId, User user, Set set)
+    {
+        // Arrange
+        _uowMock.Setup(u => u.UserRepository.GetByTelegramIdAsync(telegramId)).ReturnsAsync(user);
+        foreach (var setId in setsId)
+        {
+            _uowMock.Setup(u => u.SetRepository.GetByTrainingAndExerciseIdAndIdAsync(trainingId, exerciseId, setId)).ReturnsAsync(set);
+        }
+
+        // Act
+        await _sut.DeleteSetsExerciseAsync(telegramId, trainingId, exerciseId, setsId);
+
+        // Assert
+        foreach (var setId in setsId)
+        {
+            _uowMock.Verify(u => u.SetRepository.Delete(It.IsAny<Set>()), Times.Once);
+        }
+        _uowMock.Verify(u => u.SaveAsync(), Times.Once);
+    }
+    
+    [ExcludeFromCodeCoverage]
+    public static IEnumerable<object[]> SetData()
+    {
+        var fixture = new Fixture();
+        var exerciseId = fixture.Create<long>();
+        var trainingId = fixture.Create<long>();
+        
+        var set = new Set()
+        {
+            Repetitions = 10,
+            Weight = 100,
+            Duration = 5, 
+            Distance = 100,
+            ExerciseId = exerciseId,
+            TrainingId = trainingId,
+            Id = fixture.Create<long>()
+        };
+
+
+        yield return new object[]
+        {
+            set
+        };
+    }
+    
+    [ExcludeFromCodeCoverage]
+    public static IEnumerable<object[]> ExerciseData()
+    {
+        var fixture = new Fixture();
+        var exercise = new Exercise(
+            name: fixture.Create<string>(),
+            description: fixture.Create<string>(),
+            pictureUrl: fixture.Create<string>(),
+            type: fixture.Create<ExerciseType>()
+        );
+
+        yield return new object[]
+        {
+            exercise
+        };
+    }
+    
+    [ExcludeFromCodeCoverage]
+    public static IEnumerable<object[]> UpdateSetsData()
+    {
+        var fixture = new Fixture();
+        var sets = fixture.CreateMany<SetDto>().ToList();
+        var exerciseId = fixture.Create<long>();
+        var trainingId = fixture.Create<long>();
+        var setId = fixture.Create<long>();
+        var exercise = new Exercise(
+            name: fixture.Create<string>(),
+            description: fixture.Create<string>(),
+            pictureUrl: fixture.Create<string>(),
+            type: fixture.Create<ExerciseType>()
+        )
+        {
+            Id = exerciseId
+        };
+
+        var trainingExercise = new TrainingExercise
+        {
+            Id = exerciseId + 1,
+            Exercise = exercise,
+            TrainingId = trainingId,
+            ExerciseId = exerciseId,
+            Sets = new List<Set>
+            {
+                new Set
+                {
+                    Id = setId,
+                    Repetitions = 10, Weight = 100, Duration = 5, Distance = 100
+                }
+            }
+        };
+
+        yield return new object[]
+        {
+            fixture.Create<long>(),
+            trainingId,
+            exerciseId,
+            sets,
+            trainingExercise
+        };
+    }
+    
+    [ExcludeFromCodeCoverage]
+    public static IEnumerable<object[]> UpdateSetsZeroIdData()
+    {
+        var fixture = new Fixture();
+        var sets = fixture.CreateMany<SetDto>().ToList();
+        foreach (var set in sets)
+        {
+            set.Id = 0;
+        }
+        var exerciseId = fixture.Create<long>();
+        var trainingId = fixture.Create<long>();
+        var setId = fixture.Create<long>();
+        var exercise = new Exercise(
+            name: fixture.Create<string>(),
+            description: fixture.Create<string>(),
+            pictureUrl: fixture.Create<string>(),
+            type: fixture.Create<ExerciseType>()
+        )
+        {
+            Id = exerciseId
+        };
+
+        var trainingExercise = new TrainingExercise
+        {
+            Id = exerciseId + 1,
+            Exercise = exercise,
+            TrainingId = trainingId,
+            ExerciseId = exerciseId,
+            Sets = new List<Set>
+            {
+                new Set
+                {
+                    Id = 0,
+                    Repetitions = 10, Weight = 100, Duration = 5, Distance = 100
+                }
+            }
+        };
+
+        yield return new object[]
+        {
+            fixture.Create<long>(),
+            trainingId,
+            exerciseId,
+            sets,
+            trainingExercise
+        };
+    }
+    
+    [ExcludeFromCodeCoverage]
+    public static IEnumerable<object[]> DeleteSetsData()
+    {
+        var fixture = new Fixture();
+        var telegramId = fixture.Create<long>();
+        var user = new User(telegramId);
+        var exerciseId = fixture.Create<long>();
+        var trainingId = fixture.Create<long>();
+        var setId = fixture.Create<long>();
+        var setIds = new List<long>()
+        {
+            setId
+        };
+        var exercise = new Exercise(
+            name: fixture.Create<string>(),
+            description: fixture.Create<string>(),
+            pictureUrl: fixture.Create<string>(),
+            type: fixture.Create<ExerciseType>()
+        )
+        {
+            Id = exerciseId
+        };
+
+        var set = new Set
+        {
+            Id = setId,
+            Repetitions = 10, Weight = 100, Duration = 5, Distance = 100
+        };
+        
+        var trainingExercise = new TrainingExercise
+        {
+            Id = exerciseId + 1,
+            Exercise = exercise,
+            TrainingId = trainingId,
+            ExerciseId = exerciseId,
+            Sets = new List<Set>
+            {
+                new Set
+                {
+                    Id = setId,
+                    Repetitions = 10, Weight = 100, Duration = 5, Distance = 100
+                }
+            }
+        };
+
+        yield return new object[]
+        {
+            telegramId,
+            trainingId,
+            exerciseId,
+            setIds,
+            user,
+            set
+        };
+    }
+    
+    [ExcludeFromCodeCoverage]
     public static IEnumerable<object[]> DeleteExerciseData()
     {
         var fixture = new Fixture();
         var telegramId = fixture.Create<long>();
+        var trainerId = fixture.Create<long>();
         var user = new User(telegramId);
-        var training = new Training
+        var exerciseId = fixture.Create<long>();
+        var trainingId = fixture.Create<long>();
+        var setId = fixture.Create<long>();
+        var setIds = new List<long>()
         {
-            Id = fixture.Create<long>(),
-            User = user,
-            Exercises = new List<TrainingExercise>
+            setId
+        };
+        var exercise = new Exercise(
+            name: fixture.Create<string>(),
+            description: fixture.Create<string>(),
+            pictureUrl: fixture.Create<string>(),
+            type: fixture.Create<ExerciseType>()
+        )
+        {
+            Id = exerciseId
+        };
+
+        var set = new Set
+        {
+            Id = setId,
+            Repetitions = 10, Weight = 100, Duration = 5, Distance = 100
+        };
+        
+        var trainingExercise = new TrainingExercise
+        {
+            Id = exerciseId + 1,
+            Exercise = exercise,
+            TrainingId = trainingId,
+            ExerciseId = exerciseId,
+            Sets = new List<Set>
             {
-                new TrainingExercise
+                new Set
                 {
-                    Id = fixture.Create<long>(),
-                    ExerciseId = fixture.Create<long>()
+                    Id = setId,
+                    Repetitions = 10, Weight = 100, Duration = 5, Distance = 100
                 }
             }
         };
-        user.Trainings.Add(training);
 
-        yield return new object[] { user, training, training.Exercises.First().ExerciseId };
+        yield return new object[]
+        {
+            telegramId,
+            trainingId,
+            exerciseId,
+            trainerId,
+            user,
+            trainingExercise
+        };
     }
     
-    public static IEnumerable<object[]> ExercisesData()
+    [ExcludeFromCodeCoverage]
+    public static IEnumerable<object[]> AvailableExerciseData()
     {
         var fixture = new Fixture();
-        var exercises = new List<Exercise>();
-        int numberOfExercises = fixture.Create<int>() % 5 + 1; 
-
-        for (int i = 0; i < numberOfExercises; i++)
-        {
-            exercises.Add(new Exercise(
-                fixture.Create<string>(),
-                fixture.Create<string>(),
-                fixture.Create<string>(),
-                fixture.Create<ExerciseType>()
-            ));
-        }
-        
-        var exercisesDto = exercises.Select(e => new ExerciseDto
-        {
-            Name = e.Name,
-            Description = e.Description,
-            PictureUrl = e.PictureUrl,
-            Type = e.Type
-        }).ToList();
-        
-        yield return new object[] { exercises, exercisesDto };
-    }
-
-    public static IEnumerable<object[]> TrainingData()
-    {
-        var fixture = new Fixture();
-        var trainings = new List<Training>();
-        var today = DateTime.UtcNow;
-        var trainingsCount = fixture.Create<int>() % 5 + 1;
-        
         var telegramId = fixture.Create<long>();
+        var trainerId = fixture.Create<long>();
         var user = new User(telegramId);
-        var telegramIdTrainer = fixture.Create<long>();
-        var trainer = new User(telegramIdTrainer);
-        user.Trainers.Add(trainer);
-        trainer.Students.Add(user);
-        
-        for (int i = 0; i < trainingsCount; i++)
+        var exerciseId = fixture.Create<long>();
+        var trainingId = fixture.Create<long>();
+        var setId = fixture.Create<long>();
+        var setIds = new List<long>()
         {
-            var training = new Training()
-            {
-                Id = i + 1,
-                CreatedDate = today.AddDays(i),
-                User = user
-            };
-            
-            var exercisesCount = fixture.Create<int>() % 5 + 1;
-            var exercises = new List<TrainingExercise>();
-            for (int j = 0; j < exercisesCount; j++)
-            {
-                var setsCount = fixture.Create<int>() % 5 + 1;
-                var sets = new List<Set>();
-                for (int k = 0; k < setsCount; k++)
-                {
-                    sets.Add(new Set()
-                    {
-                        Id = 1 + i + j + k,
-                        Repetitions = fixture.Create<long>()
-                    });
-                }
+            setId
+        };
+        var exercises = new List<Exercise>();
+        var exercise = new Exercise(
+            name: fixture.Create<string>(),
+            description: fixture.Create<string>(),
+            pictureUrl: fixture.Create<string>(),
+            type: fixture.Create<ExerciseType>()
+        )
+        {
+            Id = exerciseId
+        };
 
-                var exercise = new Exercise(
-                    fixture.Create<string>(),
-                    fixture.Create<string>(),
-                    fixture.Create<string>(),
-                    fixture.Create<ExerciseType>());
-                
-                exercises.Add(new TrainingExercise()
-                {
-                    Id = 1 + i + j,
-                    Exercise = exercise,
-                    ExerciseId = exercise.Id,
-                    Sets = sets,
-                    Training = training,
-                    TrainingId = training.Id
-                });
-            }
-            
-            trainings.Add(new Training()
-            {
-                Id = i + 1,
-                CreatedDate = today.AddDays(i),
-                User = user,
-                Exercises = exercises
-            });
-        }
+        var newexercise = new Exercise(
+            name: fixture.Create<string>(),
+            description: fixture.Create<string>(),
+            pictureUrl: fixture.Create<string>(),
+            type: fixture.Create<ExerciseType>()
+        )
+        {
+            Id = 1
+        };
         
-        yield return new object[] { trainings, user, today.ToDateOnly(), trainer };
-    }
-    
-    private void SetupUserRepository(long telegramId, User user = null)
-    {
-        _uowMock.Setup(x => x.UserRepository.GetByTelegramIdAsync(telegramId))
-            .ReturnsAsync(user);
-    }
-    
-    private void SetupExercisesRepository(IReadOnlyCollection<Exercise> exercises)
-    {
-        _uowMock.Setup(x => x.ExercisesRepository.GetAllAsync()).ReturnsAsync(exercises);
-    }
+        exercises.Add(newexercise);
 
-    private void SetupTrainingGetRepository(long telegramId, IReadOnlyCollection<Training> trainings)
-    {
-        _uowMock.Setup(x => x.TrainingRepository.GetAllByTelegramIdAsync(It.Is<long>(t => t == telegramId)))
-            .ReturnsAsync(trainings);
-    }
-    
-    private void SetupTrainingAddRepository(Training training, Training createdTraining)
-    {
-        _uowMock.Setup(x => x.TrainingRepository.AddAsync(It.IsAny<Training>()))
-            .ReturnsAsync(createdTraining);
-    }
-    
-    private void SetupExerciseRepository(long exerciseId, Exercise exercise = null)
-    {
-        _uowMock.Setup(x => x.ExercisesRepository.GetByIdAsync(exerciseId))
-            .ReturnsAsync(exercise);
+        var set = new Set
+        {
+            Id = setId,
+            Repetitions = 10, Weight = 100, Duration = 5, Distance = 100
+        };
+        
+        var trainingExercise = new TrainingExercise
+        {
+            Id = exerciseId + 1,
+            Exercise = exercise,
+            TrainingId = trainingId,
+            ExerciseId = exerciseId,
+            Sets = new List<Set>
+            {
+                new Set
+                {
+                    Id = setId,
+                    Repetitions = 10, Weight = 100, Duration = 5, Distance = 100
+                }
+            }
+        };
+
+        var training = new Training
+        {
+            CreatedDate = DateTime.UtcNow,
+            User = user,
+            Exercises = new List<TrainingExercise> { trainingExercise }
+        };
+        
+        yield return new object[]
+        {
+            user,
+            training,
+            exercises
+        };
     }
 }

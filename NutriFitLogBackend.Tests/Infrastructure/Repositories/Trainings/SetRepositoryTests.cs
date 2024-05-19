@@ -1,12 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NutriFitLogBackend.Domain.Entities.Trainings;
 using NutriFitLogBackend.Infrastructure.Database;
 using NutriFitLogBackend.Infrastructure.Repositories.Trainings;
 using Xunit;
-
-namespace NutriFitLogBackend.Tests.Infrastructure.Repositories.Trainings;
 
 public class SetRepositoryTests
 {
@@ -25,80 +25,115 @@ public class SetRepositoryTests
 
     [Theory]
     [MemberData(nameof(SetData))]
-    public async Task Add_ReturnCreatedSet(Set set)
-    {
-        // Act
-        var addedSet = await _sut.AddAsync(set);
-        await _dbContext.SaveChangesAsync();
-    
-        var foundSet = await _sut.GetByIdAsync(addedSet.Id);
-
-        // Assert
-        foundSet.Should().NotBeNull();
-        foundSet.Should().BeEquivalentTo(set, options => options.Excluding(s => s.Id));
-    }
-    
-    [Theory]
-    [MemberData(nameof(SetData))]
-    public async Task GetById_WhenSetExists_ReturnSet(Set set)
+    public async Task GetByIdAsync_WhenExists_ReturnsSet(long trainingId, long exerciseId,Set set)
     {
         // Arrange
-        _dbContext.Sets.Add(set);
+        await _dbContext.Sets.AddAsync(set);
         await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _sut.GetByIdAsync(set.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(set);
+    }
+
+    [Theory]
+    [AutoData]
+    public async Task GetByIdAsync_WhenNotExists_ReturnsNull(long setId)
+    {
+        // Arrange
+
+        // Act
+        var result = await _sut.GetByIdAsync(setId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Theory]
+    [MemberData(nameof(SetData))]
+    public async Task GetByTrainingAndExerciseIdAsync_WhenSetsExist_ReturnsSets(long trainingId, long exerciseId, Set set)
+    {
+        // Arrange
+        await _dbContext.Sets.AddRangeAsync(new []{set});
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetByTrainingAndExerciseIdAsync(trainingId, exerciseId);
+
+        // Assert
+        result.Should().BeEquivalentTo(new []{set});
+    }
+
+    [Theory]
+    [AutoData]
+    public async Task GetByTrainingAndExerciseIdAsync_WhenSetsNotExist_ReturnsEmptyCollection(long trainingId, long exerciseId)
+    {
+        // Arrange
+
+        // Act
+        var result = await _sut.GetByTrainingAndExerciseIdAsync(trainingId, exerciseId);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Theory]
+    [MemberData(nameof(SetData))]
+    public async Task GetByTrainingAndExerciseIdAndIdAsync_WhenExists_ReturnsSet(long trainingId, long exerciseId, Set set)
+    {
+        // Arrange
+        set.TrainingId = trainingId;
+        set.ExerciseId = exerciseId;
+        await _dbContext.Sets.AddAsync(set);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _sut.GetByTrainingAndExerciseIdAndIdAsync(trainingId, exerciseId, set.Id);
+
+        // Assert
+        result.Should().BeEquivalentTo(set);
+    }
+
+    [Theory]
+    [AutoData]
+    public async Task GetByTrainingAndExerciseIdAndIdAsync_WhenNotExists_ReturnsNull(long trainingId, long exerciseId, long setId)
+    {
+        // Arrange
+
+        // Act
+        var result = await _sut.GetByTrainingAndExerciseIdAndIdAsync(trainingId, exerciseId, setId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Theory]
+    [MemberData(nameof(SetData))]
+    public async Task AddAsync_WhenCalled_AddsSet(long trainingId, long exerciseId,Set set)
+    {
+        // Arrange
+
+        // Act
+        var addedSet = await _sut.AddAsync(set);
+        await _dbContext.SaveChangesAsync();
+        var result = await _dbContext.Sets.FindAsync(addedSet.Id);
 
         // Assert
         result.Should().NotBeNull();
         result.Should().BeEquivalentTo(set);
     }
-    
+
     [Theory]
     [MemberData(nameof(SetData))]
-    public async Task GetById_WhenSetNotExists_ReturnNull(Set set)
+    public async Task Update_WhenCalled_UpdatesSet(long trainingId, long exerciseId,Set set)
     {
         // Arrange
-
-        // Act
-        var result = await _sut.GetByIdAsync(set.Id);
-
-        // Assert
-        result.Should().BeNull();
-    }
-    
-    [Fact]
-    public async Task GetAll_WhenSetsExist_ReturnAllSets()
-    {
-        // Arrange
-        var sets = new List<Set>
-        {
-            new Set { Repetitions = 10, Weight = 100.0, Duration = 5, Distance = 500 },
-            new Set { Repetitions = 8, Weight = 90.0, Duration = 4, Distance = 400 }
-        };
-
-        _dbContext.Sets.AddRange(sets);
+        await _dbContext.Sets.AddAsync(set);
         await _dbContext.SaveChangesAsync();
 
-        // Act
-        var result = await _sut.GetAllAsync();
-
-        // Assert
-        result.Should().HaveCount(sets.Count);
-        result.Should().BeEquivalentTo(sets);
-    }
-    
-    [Theory]
-    [MemberData(nameof(SetData))]
-    public async Task Update_ShouldBeUpdated(Set set)
-    {
-        // Arrange
-        _dbContext.Sets.Add(set);
-        await _dbContext.SaveChangesAsync();
-
-        // Modify set
-        set.Repetitions = 20;
-        set.Weight = 110.0;
+        set.Repetitions = set.Repetitions + 1;
 
         // Act
         _sut.Update(set);
@@ -106,16 +141,15 @@ public class SetRepositoryTests
         var updatedSet = await _sut.GetByIdAsync(set.Id);
 
         // Assert
-        updatedSet.Repetitions.Should().Be(20);
-        updatedSet.Weight.Should().Be(110.0);
+        updatedSet.Should().BeEquivalentTo(set);
     }
-    
+
     [Theory]
     [MemberData(nameof(SetData))]
-    public async Task Delete_ShouldBeDeleted(Set set)
+    public async Task Delete_WhenCalled_DeletesSet(long trainingId, long exerciseId,Set set)
     {
         // Arrange
-        _dbContext.Sets.Add(set);
+        await _dbContext.Sets.AddAsync(set);
         await _dbContext.SaveChangesAsync();
 
         // Act
@@ -127,22 +161,29 @@ public class SetRepositoryTests
         result.Should().BeNull();
     }
     
+    [ExcludeFromCodeCoverage]
     public static IEnumerable<object[]> SetData()
     {
         var fixture = new Fixture();
-        var repetitions = fixture.Create<long?>();
-        var weight = fixture.Create<double?>();
-        var duration = fixture.Create<double?>();
-        var distance = fixture.Create<double?>();
-
-        var set = new Set
+        var exerciseId = fixture.Create<long>();
+        var trainingId = fixture.Create<long>();
+        
+        var set = new Set()
         {
-            Repetitions = repetitions,
-            Weight = weight,
-            Duration = duration,
-            Distance = distance
+            Repetitions = 10,
+            Weight = 100,
+            Duration = 5, 
+            Distance = 100,
+            ExerciseId = exerciseId,
+            TrainingId = trainingId,
+            Id = fixture.Create<long>()
         };
 
-        yield return new object[] { set };
+        yield return new object[]
+        {
+            trainingId,
+            exerciseId,
+            set
+        };
     }
 }

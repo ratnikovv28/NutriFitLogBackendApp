@@ -63,18 +63,24 @@ public class Startup
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        if (env.IsDevelopment())
-        {
+        /*if (env.IsDevelopment())
+        {*/
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NutriFitLogBackend.API v1"));
-        }
+        /*}*/
         
         app.UseHttpsRedirection();
 
         // Use Exception Middleware
         app.UseMiddleware<ExceptionHandler>();
 
+        app.UseCors(options =>
+            options.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader()
+        );
+        
         app.UseRouting();
 
         app.UseAuthorization();

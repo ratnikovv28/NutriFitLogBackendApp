@@ -19,5 +19,5 @@ public interface IUnitOfWork : IDisposable
     IDayPartRepository DayPartRepository { get; set; }
     IMealFoodRepository MealFoodRepository { get; set; }
 
-    Task<int> SaveAsync();
+    Task SaveAsync();
 }

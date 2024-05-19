@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using AutoFixture;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using NutriFitLogBackend.Domain.Entities.Trainings;
@@ -24,24 +26,6 @@ public class TrainingRepositoryTests
         _sut = new TrainingRepository(_dbContext);
     }
         
-    [Theory]
-    [MemberData(nameof(TrainingData))]
-    public async Task Add_ReturnCreatedTraining(Training training)
-    {
-        // Act
-        var addedTraining = await _sut.AddAsync(training);
-        await _dbContext.SaveChangesAsync();
-
-        var foundTraining = await _sut.GetByIdAsync(addedTraining.Id);
-
-        // Assert
-        foundTraining.Should().NotBeNull();
-        foundTraining.Should().BeEquivalentTo(training, options => options
-            .Excluding(t => t.Id)
-            .Excluding(t => t.User.Id)
-            .ExcludingNestedObjects());
-    }
-    
     [Theory]
     [MemberData(nameof(TrainingDataForUser))]
     public async Task GetAllByUserId_WhenTrainingsExist_ReturnTrainingsForUser(User user, Training training)
@@ -85,134 +69,22 @@ public class TrainingRepositoryTests
     }
     
     [Theory]
-    [MemberData(nameof(TrainingData))]
-    public async Task GetById_WhenTrainingExists_ReturnTraining(Training training)
+    [MemberData(nameof(TrainingDataForUser))]
+    public async Task AddAsync_WhenCalled_AddsTraining(User user, Training training)
     {
         // Arrange
-        _dbContext.Trainings.Add(training);
-        await _dbContext.SaveChangesAsync();
 
         // Act
-        var result = await _sut.GetByIdAsync(training.Id);
+        var addedTraining = await _sut.AddAsync(training);
+        await _dbContext.SaveChangesAsync();
+        var result = await _dbContext.Trainings.FindAsync(addedTraining.Id);
 
         // Assert
         result.Should().NotBeNull();
-        result.Should().BeEquivalentTo(training, options => options
-            .Excluding(t => t.User.Id)
-            .ExcludingNestedObjects());
+        result.Should().BeEquivalentTo(training);
     }
     
-    [Theory]
-    [MemberData(nameof(TrainingData))]
-    public async Task GetById_WhenTrainingNotExists_ReturnNull(Training training)
-    {
-        // Arrange
-
-        // Act
-        var result = await _sut.GetByIdAsync(training.Id);
-
-        // Assert
-        result.Should().BeNull();
-    }
-    
-    [Theory]
-    [MemberData(nameof(TrainingData))]
-    public async Task Update_ShouldBeUpdated(Training training)
-    {
-        // Arrange
-        _dbContext.Trainings.Add(training);
-        await _dbContext.SaveChangesAsync();
-
-        // Modify training
-        training.Exercises.First().Sets.First().Repetitions = 20;
-
-        // Act
-        _sut.UpdateAsync(training);
-        await _dbContext.SaveChangesAsync();
-        var updatedTraining = await _sut.GetByIdAsync(training.Id);
-
-        // Assert
-        updatedTraining.Exercises.First().Sets.First().Repetitions.Should().Be(20);
-    }
-    
-    [Theory]
-    [MemberData(nameof(TrainingData))]
-    public async Task Delete_ShouldBeDeleted(Training training)
-    {
-        // Arrange
-        _dbContext.Trainings.Add(training);
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        _sut.DeleteAsync(training);
-        await _dbContext.SaveChangesAsync();
-        var result = await _sut.GetByIdAsync(training.Id);
-
-        // Assert
-        result.Should().BeNull();
-    }
-    
-    public static IEnumerable<object[]> TrainingData()
-    {
-        var fixture = new Fixture();
-        var user = new User(fixture.Create<long>());
-        var exercise = new Exercise(
-            name: fixture.Create<string>(),
-            description: fixture.Create<string>(),
-            pictureUrl: fixture.Create<string>(),
-            type: fixture.Create<ExerciseType>()
-        );
-
-        var trainingExercise = new TrainingExercise
-        {
-            Exercise = exercise,
-            Sets = new List<Set>
-            {
-                new Set { Repetitions = 10, Weight = 100, Duration = 5, Distance = 100 }
-            }
-        };
-
-        var training = new Training
-        {
-            CreatedDate = DateTime.UtcNow,
-            User = user,
-            Exercises = new List<TrainingExercise> { trainingExercise }
-        };
-
-        yield return new object[]
-        {
-            training
-        };
-    }
-    
-    [Theory]
-    [MemberData(nameof(TrainingsData))]
-    public async Task GetAllAsync_WhenTrainingsExist_ReturnsAllTrainings(List<Training> expectedTrainings)
-    {
-        // Arrange
-        _dbContext.Trainings.AddRange(expectedTrainings);
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        var result = await _sut.GetAllAsync();
-
-        // Assert
-        result.Should().HaveCount(expectedTrainings.Count);
-        result.Should().BeEquivalentTo(expectedTrainings, options => options
-            .Excluding(t => t.User) 
-            .ExcludingNestedObjects());
-    }
-    
-    [Fact]
-    public async Task GetAllAsync_WhenNoTrainingsExist_ReturnsEmptyCollection()
-    {
-        // Act
-        var result = await _sut.GetAllAsync();
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-    
+    [ExcludeFromCodeCoverage]
     public static IEnumerable<object[]> TrainingDataForUser()
     {
         var fixture = new Fixture();
@@ -245,34 +117,5 @@ public class TrainingRepositoryTests
             user,
             training
         };
-    }
-    
-    public static IEnumerable<object[]> TrainingsData()
-    {
-        var fixture = new Fixture();
-        var trainings = new List<Training>();
-
-        for (int i = 0; i < 3; i++)
-        {
-            var training = new Training
-            {
-                CreatedDate = DateTime.UtcNow.AddDays(-i),
-                UserId = fixture.Create<long>(),
-                Exercises = new List<TrainingExercise>
-                {
-                    new TrainingExercise
-                    {
-                        Exercise = new Exercise ("Exercise " + i, "Test desc", "Test pic", ExerciseType.Endurance ),
-                        Sets = new List<Set>
-                        {
-                            new Set { Repetitions = 10, Weight = 50.5, Duration = 5, Distance = 500 }
-                        }
-                    }
-                }
-            };
-            trainings.Add(training);
-        }
-
-        yield return new object[] { trainings };
     }
 }

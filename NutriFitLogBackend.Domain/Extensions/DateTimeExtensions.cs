@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace NutriFitLogBackend.Domain.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class DateTimeExtensions
 {
     // Расширение для перевода из DateTime в DateOnly.

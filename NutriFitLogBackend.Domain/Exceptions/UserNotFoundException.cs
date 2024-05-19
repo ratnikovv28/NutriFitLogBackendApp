@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using NutriFitLogBackend.Domain.Common;
 
 namespace NutriFitLogBackend.Domain.Exceptions;
 
+[ExcludeFromCodeCoverage]
 public class UserNotFoundException : BaseException
 {
     public UserNotFoundException() : base(HttpStatusCode.NotFound)

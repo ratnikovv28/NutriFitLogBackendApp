@@ -180,15 +180,6 @@ public class TrainingService : ITrainingService
         await _unitOfWork.SaveAsync();
     }
 
-    private Set GetSetFromExercise(TrainingExercise userTrainingExercises, User user, long setId)
-    {
-        var exerciseSet = userTrainingExercises.Sets.FirstOrDefault(s => s.Id == setId);
-        if (exerciseSet is null)
-            throw new NoSetUserException(user.TelegramId, setId);
-
-        return exerciseSet;
-    }
-    
     private async Task<User> GetUser(long telegramId)
     {
         var user = await _unitOfWork.UserRepository.GetByTelegramIdAsync(telegramId);
@@ -198,18 +189,18 @@ public class TrainingService : ITrainingService
         return user;
     }
 
+    [ExcludeFromCodeCoverage]
     private async Task UserWorkWithTrainerGuard(User user, long trainerId)
     {
         if(trainerId == 0) return;
         
-        var student = await _unitOfWork.UserRepository.GetByTelegramIdAsync(user.TelegramId);
-        if (student is null)
+        if (user is null)
             throw new UserNotFoundException(user.TelegramId);
         var trainer = await _unitOfWork.UserRepository.GetByTelegramIdAsync(trainerId);
         if (trainer is null)
             throw new UserNotFoundException(trainerId);
 
-        var studentTrainer = await _unitOfWork.StudentTrainerRepository.GetRelationShip(student.Id, trainer.Id);
+        var studentTrainer = await _unitOfWork.StudentTrainerRepository.GetRelationShip(user.Id, trainer.Id);
         if (studentTrainer is null)
             throw new StudentTrainerWorkException(
                 $"Student with Id = '{user.TelegramId}' doesnt work with Trainer with Id = '{trainerId}'");

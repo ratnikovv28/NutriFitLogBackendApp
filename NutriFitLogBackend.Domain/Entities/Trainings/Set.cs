@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace NutriFitLogBackend.Domain.Entities.Trainings;
 
 public class Set
@@ -12,5 +14,5 @@ public class Set
     public long TrainingId { get; set; }
     public long ExerciseId { get; set; }
 
-    public TrainingExercise TrainingExercise { get; set; }
+    public TrainingExercise TrainingExercise { get; [ExcludeFromCodeCoverage] set; }
 }

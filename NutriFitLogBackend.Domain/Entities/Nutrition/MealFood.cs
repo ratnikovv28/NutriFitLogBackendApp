@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace NutriFitLogBackend.Domain.Entities.Nutrition;
 
 public class MealFood
@@ -11,10 +13,10 @@ public class MealFood
     public double Quantity { get; set; }
     
     public long DayPartId { get; set; }
-    public DayPart? DayPart { get; set; }
+    public DayPart? DayPart { get; [ExcludeFromCodeCoverage] set; }
     
     public long MealId { get; set; }
-    public Meal? Meal { get; set; }
+    public Meal? Meal { get; [ExcludeFromCodeCoverage] set; }
     
     public long FoodId { get; set; }
     public Food? Food { get; set; }
