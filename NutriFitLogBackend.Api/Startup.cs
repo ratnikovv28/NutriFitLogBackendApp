@@ -28,15 +28,19 @@ public class Startup
     
     public void ConfigureServices(IServiceCollection services)
     {
+        // Добавления валидаторов
         services.AddMvc();
         services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
         services.AddValidatorsFromAssemblyContaining<Startup>();
         
+        // Подключение контекста базы данных
         services.AddDbContext<NutriFitLogContext>(options =>
             options.UseNpgsql(Configuration.GetConnectionString("NutriFitLogContext")));
 
+        // Подключение паттерна Unit Of Work
         services.SetupUnitOfWork();
 
+        // Добавление автоматического соотношения между бизнес-сущностями и DTO
         services.AddAutoMapper(typeof(MappingProfile));
         
         services.AddScoped<IUserService, UserService>();
@@ -60,19 +64,17 @@ public class Startup
         });
     }
     
-    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        /*if (env.IsDevelopment())
-        {*/
+        if (env.IsDevelopment())
+        {
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NutriFitLogBackend.API v1"));
-        /*}*/
+        }
         
         app.UseHttpsRedirection();
 
-        // Use Exception Middleware
         app.UseMiddleware<ExceptionHandler>();
 
         app.UseCors(options =>

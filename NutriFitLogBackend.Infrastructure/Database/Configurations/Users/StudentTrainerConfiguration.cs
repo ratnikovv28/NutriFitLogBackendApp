@@ -18,7 +18,6 @@ public class StudentTrainerConfiguration : IEntityTypeConfiguration<StudentTrain
             .WithMany(u => u.Students)
             .HasForeignKey(st => st.TrainerId);
         
-        // Если вы хотите, чтобы пары тренер-студент были уникальны, можно добавить:
         builder.HasIndex(st => new { st.TrainerId, st.StudentId }).IsUnique();
     }
 }
