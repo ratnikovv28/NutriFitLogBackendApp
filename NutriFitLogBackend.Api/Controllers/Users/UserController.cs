@@ -16,15 +16,15 @@ public class UserController : ControllerBase
         _userService = userService ?? throw new ArgumentNullException(nameof(userService));
     }
     
-    [HttpGet("Get/{telegramId}")]
-    public async Task<ActionResult<UserDto>> Get(long telegramId)
+    [HttpPost("Get")]
+    public async Task<ActionResult<UserDto>> Get([FromBody]long telegramId)
     {
         var user = await _userService.GetUserByTelegramId(telegramId);
         return Ok(user);
     }
     
-    [HttpGet("GetTrainers/{telegramId}")]
-    public async Task<ActionResult<IReadOnlyCollection<UserDto>>> GetTrainers(long telegramId)
+    [HttpPost("GetTrainers")]
+    public async Task<ActionResult<IReadOnlyCollection<UserDto>>> GetTrainers([FromBody] long telegramId)
     {
         var user = await _userService.GetTrainers(telegramId);
         return Ok(user);

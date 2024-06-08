@@ -16,13 +16,13 @@ public class NutritionController : ControllerBase
         _nutritionService = nutritionService ?? throw new ArgumentNullException(nameof(nutritionService));
     }
 
-    [HttpGet("GetAllDayParts")]
+    [HttpPost("GetAllDayParts")]
     public async Task<ActionResult<IReadOnlyCollection<DayPartDto>>> GetAllDayParts()
     {
         return Ok(await _nutritionService.GetAllDayPartsAsync());
     }
     
-    [HttpGet("GetAllFoods")]
+    [HttpPost("GetAllFoods")]
     public async Task<ActionResult<IReadOnlyCollection<FoodDto>>> GetAllFoods()
     {
         return Ok(await _nutritionService.GetAllFoodsAsync());

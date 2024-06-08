@@ -16,7 +16,7 @@ public class TrainingController : ControllerBase
         _trainingService = trainingService ?? throw new ArgumentNullException(nameof(trainingService));
     }
     
-    [HttpGet("GetAllExercises")]
+    [HttpPost("GetAllExercises")]
     public async Task<ActionResult<IReadOnlyCollection<ExerciseDto>>> GetAllExercises()
     {
         return Ok(await _trainingService.GetAllExercisesAsync());

@@ -14,7 +14,6 @@ public class Program
         using (var scope = host.Services.CreateScope())
         {
            var db = scope.ServiceProvider.GetRequiredService<NutriFitLogContext>();
-           db.Database.Migrate();
         }
 
         host.Run();
