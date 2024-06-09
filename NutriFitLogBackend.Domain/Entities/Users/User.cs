@@ -25,7 +25,7 @@ public class User
         IsActiveTrainer = true;
         Roles = new List<UserRole>
         {
-            UserRole.User
+            UserRole.User, UserRole.Trainer
         };
     }
 }
